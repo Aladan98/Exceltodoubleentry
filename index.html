@@ -1,247 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Excel to Double-Entry Accounting</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Excel to Double Entry & General Ledger</title>
 <style>
-  body { background-color:#121212; color:#e0e0e0; font-family: Arial, sans-serif; padding:20px;}
-  table { width:100%; border-collapse: collapse; margin: 20px 0;}
-  th, td { border:1px solid #444; padding:8px; text-align:left;}
-  th { background-color:#1e1e1e;}
-  tr:hover { background-color:#1a1a1a;}
-  button { background-color:#007bff; color:white; border:none; padding:8px 12px; margin:5px; cursor:pointer; }
-  button:hover { background-color:#0056b3;}
-  input, select { padding:5px; margin:5px;}
-  .highlight { background-color: #ffcc00; }
-  .error { background-color: #ff4444; color:white;}
-  .modal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
-           background-color:#222; padding:20px; border:2px solid #007bff; z-index:1000; max-height:80%; overflow:auto;}
-  .modal-header { font-weight:bold; margin-bottom:10px;}
-  .modal-close { float:right; cursor:pointer; color:#ff4444; font-weight:bold;}
+  body { background-color: #121212; color: #e0e0e0; font-family: Arial, sans-serif; padding: 20px; }
+  input, button, select { margin: 5px; padding: 8px; font-size: 1rem; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; color: #e0e0e0; }
+  th, td { border: 1px solid #444; padding: 8px; text-align: left; }
+  th { background-color: #1e1e1e; }
+  tr:hover { background-color: #1a1a1a; }
 </style>
 </head>
 <body>
 
-<h1>Excel to Double-Entry Accounting Tool</h1>
+<h1>Petty Cash Excel to Double Entry & General Ledger Tool</h1>
 
-<!-- Excel/CSV Upload -->
-<input type="file" id="fileInput" accept=".xlsx,.csv">
-<select id="sheetSelect"></select>
-<button onclick="loadSheet()">Load Sheet</button>
+<p>Excel columns expected: <b>Date, Description, Type, Amount, Account (optional)</b></p>
 
-<!-- Filter/Search -->
-<div>
-  <label>Account:</label>
-  <select id="filterAccount"><option value="">All</option></select>
-  <label>Category:</label>
-  <select id="filterCategory"><option value="">All</option></select>
-  <label>Min Amount:</label>
-  <input type="number" id="filterMin" placeholder="0">
-  <label>Max Amount:</label>
-  <input type="number" id="filterMax" placeholder="100000">
-  <button onclick="applyFilters()">Apply Filters</button>
-</div>
+<p>
+Counter Account: <input type="text" id="counterAccount" placeholder="e.g. Bank, Cash" />
+</p>
 
-<!-- Buttons -->
-<button onclick="generateJournalAuto()">Generate Journal</button>
-<button onclick="calculateTrialBalance()">View Trial Balance</button>
-<button onclick="viewPL()">Profit & Loss</button>
-<button onclick="viewBalanceSheet()">Balance Sheet</button>
+<input type="file" id="fileInput" accept=".xlsx,.csv" />
+<button onclick="loadExcel()">Load Excel</button>
+<button onclick="generateJournal()">Generate Journal Entries</button>
+<button onclick="generateLedger()">Generate General Ledger</button>
 
-<!-- Tables -->
 <h2>Journal Entries</h2>
 <table id="journalTable">
-  <tr><th>Date</th><th>Account</th><th>Debit</th><th>Credit</th><th>Category</th><th>Description</th></tr>
+  <tr><th>Date</th><th>Account</th><th>Debit</th><th>Credit</th><th>Description</th></tr>
 </table>
 
-<h2>Trial Balance</h2>
-<table id="trialTable">
-  <tr><th>Account</th><th>Debit</th><th>Credit</th></tr>
+<h2>General Ledger</h2>
+<table id="ledgerTable">
+  <tr><th>Account</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
 </table>
 
-<!-- Modal for Account Edit -->
-<div id="accountModal" class="modal">
-  <div class="modal-header">Edit Account<span class="modal-close" onclick="closeModal()">X</span></div>
-  <div>
-    <label>Account Name:</label>
-    <input type="text" id="modalAccountName">
-    <button onclick="saveAccount()">Save</button>
-  </div>
-</div>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 let sheetData = [];
-let accounts = {};
-let categories = {};
-let selectedAccountRow = null;
+let journal = [];
+let ledger = {};
 
-// Load Excel/CSV file
-document.getElementById('fileInput').addEventListener('change', function(e){
-  const file = e.target.files[0];
+const accountKeywords = {
+  "Staff Food": ["food", "canteen", "lunch", "snack"],
+  "Legal": ["law", "legal", "attorney"],
+  "Stationary": ["stationery", "pen", "paper", "office supply"],
+  "Printing": ["print", "brochure", "flyer", "poster"],
+  "Car Fix": ["car", "fuel", "repair", "garage"]
+};
+
+function detectAccount(description){
+  if(!description) return "Unknown";
+  description = description.toLowerCase();
+  for(const [account, keywords] of Object.entries(accountKeywords)){
+    for(const kw of keywords){
+      if(description.includes(kw)) return account;
+    }
+  }
+  return "Misc";
+}
+
+function loadExcel() {
+  const file = document.getElementById('fileInput').files[0];
+  if (!file) { alert("Please select an Excel file first."); return; }
   const reader = new FileReader();
-  reader.onload = function(e){
+  reader.onload = function (e) {
     const data = new Uint8Array(e.target.result);
-    const workbook = XLSX.read(data, {type:'array'});
-    const sheetSelect = document.getElementById('sheetSelect');
-    sheetSelect.innerHTML = '';
-    workbook.SheetNames.forEach(name => {
-      const option = document.createElement('option');
-      option.value = name;
-      option.text = name;
-      sheetSelect.appendChild(option);
-    });
-    sheetSelect.workbook = workbook;
+    const workbook = XLSX.read(data, { type: 'array' });
+    const ws = workbook.Sheets[workbook.SheetNames[0]];
+    sheetData = XLSX.utils.sheet_to_json(ws);
+    alert('Loaded ' + sheetData.length + ' transactions.');
   };
   reader.readAsArrayBuffer(file);
-});
-
-function loadSheet(){
-  const sheetSelect = document.getElementById('sheetSelect');
-  const ws = sheetSelect.workbook.Sheets[sheetSelect.value];
-  sheetData = XLSX.utils.sheet_to_json(ws);
-  updateFilters();
-  alert('Sheet loaded: ' + sheetData.length + ' transactions');
 }
 
-// Update Account/Category filters
-function updateFilters(){
-  const filterAccount = document.getElementById('filterAccount');
-  const filterCategory = document.getElementById('filterCategory');
-  filterAccount.innerHTML = '<option value="">All</option>';
-  filterCategory.innerHTML = '<option value="">All</option>';
-  sheetData.forEach(t=>{
-    if(t.Account && !accounts[t.Account]) { accounts[t.Account]=true; 
-      const opt=document.createElement('option'); opt.value=t.Account; opt.text=t.Account; filterAccount.appendChild(opt);}
-    if(t.Category && !categories[t.Category]) { categories[t.Category]=true; 
-      const opt=document.createElement('option'); opt.value=t.Category; opt.text=t.Category; filterCategory.appendChild(opt);}
-  });
-}
+function generateJournal() {
+  if (!sheetData.length) return alert("No data loaded!");
+  const table = document.getElementById('journalTable');
+  table.innerHTML = '<tr><th>Date</th><th>Account</th><th>Debit</th><th>Credit</th><th>Description</th></tr>';
+  journal = [];
+  const counterAccount = document.getElementById('counterAccount').value || "Counter Account";
 
-// Apply filters
-function applyFilters(){
-  const account = document.getElementById('filterAccount').value;
-  const category = document.getElementById('filterCategory').value;
-  const min = parseFloat(document.getElementById('filterMin').value) || 0;
-  const max = parseFloat(document.getElementById('filterMax').value) || Infinity;
-  const filtered = sheetData.filter(t=>{
-    let amt = parseFloat(t.Amount);
-    return (!account || t.Account===account) &&
-           (!category || t.Category===category) &&
-           amt>=min && amt<=max;
-  });
-  generateJournalAuto(filtered);
-}
+  sheetData.forEach(row => {
+    const { Date, Description, Type, Amount, Account } = row;
+    const amt = parseFloat(Amount);
+    if(!Type || !amt) return;
 
-// Generate Journal
-function generateJournalAuto(data=sheetData){
-  if(data.length === 0) return alert("No transactions loaded");
-  const journalTable = document.getElementById('journalTable');
-  journalTable.innerHTML = '<tr><th>Date</th><th>Account</th><th>Debit</th><th>Credit</th><th>Category</th><th>Description</th></tr>';
+    const accountToUse = Account || detectAccount(Description);
 
-  data.forEach((t,index)=>{
-    let debitAccount='', creditAccount='';
-    let amt=parseFloat(t.Amount);
-    const desc=(t.Description||'').toLowerCase();
-    const category = t.Category||'Unclassified';
-
-    if(amt>0){ debitAccount='Cash'; 
-      if(desc.includes('sale') || desc.includes('revenue')) creditAccount='Revenue';
-      else creditAccount='Liability'; }
-    else{ amt=Math.abs(amt); creditAccount='Cash';
-      if(desc.includes('expense')||desc.includes('bill')||desc.includes('purchase')) debitAccount='Expense';
-      else debitAccount='Equity'; }
-
-    const tr1=document.createElement('tr');
-    tr1.innerHTML=`<td>${t.Date}</td><td contenteditable="true" onblur="editAccount(this, ${index}, 'debit')">${debitAccount}</td><td>${amt}</td><td></td><td contenteditable="true" onblur="editCategory(this, ${index})">${category}</td><td>${t.Description||''}</td>`;
-    const tr2=document.createElement('tr');
-    tr2.innerHTML=`<td>${t.Date}</td><td contenteditable="true" onblur="editAccount(this, ${index}, 'credit')">${creditAccount}</td><td></td><td>${amt}</td><td contenteditable="true" onblur="editCategory(this, ${index})">${category}</td><td>${t.Description||''}</td>`;
-    journalTable.appendChild(tr1);
-    journalTable.appendChild(tr2);
+    if(Type.toLowerCase() === 'receipt'){
+      journal.push({ Date, Account: 'Petty Cash', Debit: amt, Credit: '', Description });
+      journal.push({ Date, Account: counterAccount, Debit: '', Credit: amt, Description });
+    } else {
+      journal.push({ Date, Account: accountToUse, Debit: amt, Credit: '', Description });
+      journal.push({ Date, Account: 'Petty Cash', Debit: '', Credit: amt, Description });
+    }
   });
 
-  calculateTrialBalance();
+  renderRowsInChunks(journal, table);
 }
 
-// Edit inline
-function editAccount(cell, index, type){
-  const value = cell.innerText.trim();
-  if(type==='debit') sheetData[index].DebitAccount=value;
-  else sheetData[index].CreditAccount=value;
-  accounts[value]=true;
-  updateFilters();
-}
+function generateLedger() {
+  if (!journal.length) return alert("Generate journal entries first!");
+  ledger = {};
+  const table = document.getElementById('ledgerTable');
+  table.innerHTML = '<tr><th>Account</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>';
 
-function editCategory(cell,index){
-  const value=cell.innerText.trim();
-  sheetData[index].Category=value;
-  categories[value]=true;
-  updateFilters();
-}
-
-// Trial Balance
-function calculateTrialBalance(){
-  const trialTable=document.getElementById('trialTable');
-  trialTable.innerHTML='<tr><th>Account</th><th>Debit</th><th>Credit</th></tr>';
-  const balances={};
-  sheetData.forEach(t=>{
-    const debit = t.DebitAccount||'Expense';
-    const credit = t.CreditAccount||'Revenue';
-    const amt=parseFloat(t.Amount)||0;
-    balances[debit]=(balances[debit]||0)+amt;
-    balances[credit]=(balances[credit]||0)-amt;
+  journal.forEach(jr => {
+    if(!ledger[jr.Account]) ledger[jr.Account] = [];
+    ledger[jr.Account].push(jr);
   });
-  Object.keys(balances).forEach(acc=>{
-    const val=balances[acc];
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${acc}</td><td>${val>0?val:0}</td><td>${val<0?Math.abs(val):0}</td>`;
-    trialTable.appendChild(tr);
-  });
-}
 
-// Profit & Loss
-function viewPL(){
-  let income=0, expense=0;
-  sheetData.forEach(t=>{
-    const amt=parseFloat(t.Amount)||0;
-    const credit = t.CreditAccount||'Revenue';
-    const debit = t.DebitAccount||'Expense';
-    if(credit.toLowerCase().includes('revenue')||credit.toLowerCase().includes('income')) income+=amt;
-    if(debit.toLowerCase().includes('expense')) expense+=amt;
-  });
-  alert(`Profit & Loss:\nIncome: ${income}\nExpense: ${expense}\nNet Profit: ${income-expense}`);
-}
-
-// Balance Sheet
-function viewBalanceSheet(){
-  let assets=0, liabilities=0, equity=0;
-  sheetData.forEach(t=>{
-    const amt=parseFloat(t.Amount)||0;
-    const debit=t.DebitAccount||'Expense';
-    const credit=t.CreditAccount||'Revenue';
-    if(debit.toLowerCase().includes('cash')||debit.toLowerCase().includes('asset')) assets+=amt;
-    if(credit.toLowerCase().includes('liability')) liabilities+=amt;
-    if(debit.toLowerCase().includes('equity')) equity+=amt;
-  });
-  alert(`Balance Sheet:\nAssets: ${assets}\nLiabilities: ${liabilities}\nEquity: ${equity}\nCheck: ${assets===liabilities+equity?'Balanced':'Not Balanced'}`);
-}
-
-// Modal
-function openModal(accountRow){
-  selectedAccountRow=accountRow;
-  document.getElementById('modalAccountName').value=accountRow.innerText;
-  document.getElementById('accountModal').style.display='block';
-}
-function closeModal(){ document.getElementById('accountModal').style.display='none'; }
-function saveAccount(){
-  if(selectedAccountRow){
-    selectedAccountRow.innerText=document.getElementById('modalAccountName').value;
-    selectedAccountRow=null;
-    closeModal();
+  for(const account of Object.keys(ledger)){
+    let balance = 0;
+    renderRowsInChunks(ledger[account], table, 500, (jr) => {
+      let debit = parseFloat(jr.Debit) || 0;
+      let credit = parseFloat(jr.Credit) || 0;
+      balance += debit - credit;
+      return `<td>${account}</td><td>${jr.Date||''}</td><td>${jr.Description||''}</td><td>${debit||''}</td><td>${credit||''}</td><td>${balance.toFixed(2)}</td>`;
+    });
   }
 }
-</script>
 
+function renderRowsInChunks(rows, table, chunkSize = 500, formatRow) {
+  let i = 0;
+  function renderChunk() {
+    const fragment = document.createDocumentFragment();
+    for(let j=0; j<chunkSize && i<rows.length; j++, i++){
+      const jr = rows[i];
+      const tr = document.createElement('tr');
+      tr.innerHTML = formatRow ? formatRow(jr) : `<td>${jr.Date||''}</td><td>${jr.Account}</td><td>${jr.Debit||''}</td><td>${jr.Credit||''}</td><td>${jr.Description||''}</td>`;
+      fragment.appendChild(tr);
+    }
+    table.appendChild(fragment);
+    if(i<rows.length) setTimeout(renderChunk, 0);
+  }
+  renderChunk();
+}
+</script>
 </body>
 </html>
+
