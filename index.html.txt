@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Excel to Double-Entry Accounting</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  body { background-color:#121212; color:#e0e0e0; font-family: Arial, sans-serif; padding:20px;}
+  table { width:100%; border-collapse: collapse; margin: 20px 0;}
+  th, td { border:1px solid #444; padding:8px; text-align:left;}
+  th { background-color:#1e1e1e;}
+  tr:hover { background-color:#1a1a1a;}
+  button { background-color:#007bff; color:white; border:none; padding:8px 12px; margin:5px; cursor:pointer; }
+  button:hover { background-color:#0056b3;}
+  input, select { padding:5px; margin:5px;}
+  .highlight { background-color: #ffcc00; }
+  .error { background-color: #ff4444; color:white;}
+  .modal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%);
+           background-color:#222; padding:20px; border:2px solid #007bff; z-index:1000; max-height:80%; overflow:auto;}
+  .modal-header { font-weight:bold; margin-bottom:10px;}
+  .modal-close { float:right; cursor:pointer; color:#ff4444; font-weight:bold;}
+</style>
+</head>
+<body>
+
+<h1>Excel to Double-Entry Accounting Tool</h1>
+
+<!-- Excel/CSV Upload -->
+<input type="file" id="fileInput" accept=".xlsx,.csv">
+<select id="sheetSelect"></select>
+<button onclick="loadSheet()">Load Sheet</button>
+
+<!-- Filter/Search -->
+<div>
+  <label>Account:</label>
+  <select id="filterAccount"><option value="">All</option></select>
+  <label>Category:</label>
+  <select id="filterCategory"><option value="">All</option></select>
+  <label>Min Amount:</label>
+  <input type="number" id="filterMin" placeholder="0">
+  <label>Max Amount:</label>
+  <input type="number" id="filterMax" placeholder="100000">
+  <button onclick="applyFilters()">Apply Filters</button>
+</div>
+
+<!-- Buttons -->
+<button onclick="generateJournalAuto()">Generate Journal</button>
+<button onclick="calculateTrialBalance()">View Trial Balance</button>
+<button onclick="viewPL()">Profit & Loss</button>
+<button onclick="viewBalanceSheet()">Balance Sheet</button>
+
+<!-- Tables -->
+<h2>Journal Entries</h2>
+<table id="journalTable">
+  <tr><th>Date</th><th>Account</th><th>Debit</th><th>Credit</th><th>Category</th><th>Description</th></tr>
+</table>
+
+<h2>Trial Balance</h2>
+<table id="trialTable">
+  <tr><th>Account</th><th>Debit</th><th>Credit</th></tr>
+</table>
+
+<!-- Modal for Account Edit -->
+<div id="accountModal" class="modal">
+  <div class="modal-header">Edit Account<span class="modal-close" onclick="closeModal()">X</span></div>
+  <div>
+    <label>Account Name:</label>
+    <input type="text" id="modalAccountName">
+    <button onclick="saveAccount()">Save</button>
+  </div>
+</div>
+
+<script>
+let sheetData = [];
+let accounts = {};
+let categories = {};
+let selectedAccountRow = null;
+
+// Load Excel/CSV file
+document.getElementById('fileInput').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, {type:'array'});
+    const sheetSelect = document.getElementById('sheetSelect');
+    sheetSelect.innerHTML = '';
+    workbook.SheetNames.forEach(name => {
+      const option = document.createElement('option');
+      option.value = name;
+      option.text = name;
+      sheetSelect.appendChild(option);
+    });
+    sheetSelect.workbook = workbook;
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+function loadSheet(){
+  const sheetSelect = document.getElementById('sheetSelect');
+  const ws = sheetSelect.workbook.Sheets[sheetSelect.value];
+  sheetData = XLSX.utils.sheet_to_json(ws);
+  updateFilters();
+  alert('Sheet loaded: ' + sheetData.length + ' transactions');
+}
+
+// Update Account/Category filters
+function updateFilters(){
+  const filterAccount = document.getElementById('filterAccount');
+  const filterCategory = document.getElementById('filterCategory');
+  filterAccount.innerHTML = '<option value="">All</option>';
+  filterCategory.innerHTML = '<option value="">All</option>';
+  sheetData.forEach(t=>{
+    if(t.Account && !accounts[t.Account]) { accounts[t.Account]=true; 
+      const opt=document.createElement('option'); opt.value=t.Account; opt.text=t.Account; filterAccount.appendChild(opt);}
+    if(t.Category && !categories[t.Category]) { categories[t.Category]=true; 
+      const opt=document.createElement('option'); opt.value=t.Category; opt.text=t.Category; filterCategory.appendChild(opt);}
+  });
+}
+
+// Apply filters
+function applyFilters(){
+  const account = document.getElementById('filterAccount').value;
+  const category = document.getElementById('filterCategory').value;
+  const min = parseFloat(document.getElementById('filterMin').value) || 0;
+  const max = parseFloat(document.getElementById('filterMax').value) || Infinity;
+  const filtered = sheetData.filter(t=>{
+    let amt = parseFloat(t.Amount);
+    return (!account || t.Account===account) &&
+           (!category || t.Category===category) &&
+           amt>=min && amt<=max;
+  });
+  generateJournalAuto(filtered);
+}
+
+// Generate Journal
+function generateJournalAuto(data=sheetData){
+  if(data.length === 0) return alert("No transactions loaded");
+  const journalTable = document.getElementById('journalTable');
+  journalTable.innerHTML = '<tr><th>Date</th><th>Account</th><th>Debit</th><th>Credit</th><th>Category</th><th>Description</th></tr>';
+
+  data.forEach((t,index)=>{
+    let debitAccount='', creditAccount='';
+    let amt=parseFloat(t.Amount);
+    const desc=(t.Description||'').toLowerCase();
+    const category = t.Category||'Unclassified';
+
+    if(amt>0){ debitAccount='Cash'; 
+      if(desc.includes('sale') || desc.includes('revenue')) creditAccount='Revenue';
+      else creditAccount='Liability'; }
+    else{ amt=Math.abs(amt); creditAccount='Cash';
+      if(desc.includes('expense')||desc.includes('bill')||desc.includes('purchase')) debitAccount='Expense';
+      else debitAccount='Equity'; }
+
+    const tr1=document.createElement('tr');
+    tr1.innerHTML=`<td>${t.Date}</td><td contenteditable="true" onblur="editAccount(this, ${index}, 'debit')">${debitAccount}</td><td>${amt}</td><td></td><td contenteditable="true" onblur="editCategory(this, ${index})">${category}</td><td>${t.Description||''}</td>`;
+    const tr2=document.createElement('tr');
+    tr2.innerHTML=`<td>${t.Date}</td><td contenteditable="true" onblur="editAccount(this, ${index}, 'credit')">${creditAccount}</td><td></td><td>${amt}</td><td contenteditable="true" onblur="editCategory(this, ${index})">${category}</td><td>${t.Description||''}</td>`;
+    journalTable.appendChild(tr1);
+    journalTable.appendChild(tr2);
+  });
+
+  calculateTrialBalance();
+}
+
+// Edit inline
+function editAccount(cell, index, type){
+  const value = cell.innerText.trim();
+  if(type==='debit') sheetData[index].DebitAccount=value;
+  else sheetData[index].CreditAccount=value;
+  accounts[value]=true;
+  updateFilters();
+}
+
+function editCategory(cell,index){
+  const value=cell.innerText.trim();
+  sheetData[index].Category=value;
+  categories[value]=true;
+  updateFilters();
+}
+
+// Trial Balance
+function calculateTrialBalance(){
+  const trialTable=document.getElementById('trialTable');
+  trialTable.innerHTML='<tr><th>Account</th><th>Debit</th><th>Credit</th></tr>';
+  const balances={};
+  sheetData.forEach(t=>{
+    const debit = t.DebitAccount||'Expense';
+    const credit = t.CreditAccount||'Revenue';
+    const amt=parseFloat(t.Amount)||0;
+    balances[debit]=(balances[debit]||0)+amt;
+    balances[credit]=(balances[credit]||0)-amt;
+  });
+  Object.keys(balances).forEach(acc=>{
+    const val=balances[acc];
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${acc}</td><td>${val>0?val:0}</td><td>${val<0?Math.abs(val):0}</td>`;
+    trialTable.appendChild(tr);
+  });
+}
+
+// Profit & Loss
+function viewPL(){
+  let income=0, expense=0;
+  sheetData.forEach(t=>{
+    const amt=parseFloat(t.Amount)||0;
+    const credit = t.CreditAccount||'Revenue';
+    const debit = t.DebitAccount||'Expense';
+    if(credit.toLowerCase().includes('revenue')||credit.toLowerCase().includes('income')) income+=amt;
+    if(debit.toLowerCase().includes('expense')) expense+=amt;
+  });
+  alert(`Profit & Loss:\nIncome: ${income}\nExpense: ${expense}\nNet Profit: ${income-expense}`);
+}
+
+// Balance Sheet
+function viewBalanceSheet(){
+  let assets=0, liabilities=0, equity=0;
+  sheetData.forEach(t=>{
+    const amt=parseFloat(t.Amount)||0;
+    const debit=t.DebitAccount||'Expense';
+    const credit=t.CreditAccount||'Revenue';
+    if(debit.toLowerCase().includes('cash')||debit.toLowerCase().includes('asset')) assets+=amt;
+    if(credit.toLowerCase().includes('liability')) liabilities+=amt;
+    if(debit.toLowerCase().includes('equity')) equity+=amt;
+  });
+  alert(`Balance Sheet:\nAssets: ${assets}\nLiabilities: ${liabilities}\nEquity: ${equity}\nCheck: ${assets===liabilities+equity?'Balanced':'Not Balanced'}`);
+}
+
+// Modal
+function openModal(accountRow){
+  selectedAccountRow=accountRow;
+  document.getElementById('modalAccountName').value=accountRow.innerText;
+  document.getElementById('accountModal').style.display='block';
+}
+function closeModal(){ document.getElementById('accountModal').style.display='none'; }
+function saveAccount(){
+  if(selectedAccountRow){
+    selectedAccountRow.innerText=document.getElementById('modalAccountName').value;
+    selectedAccountRow=null;
+    closeModal();
+  }
+}
+</script>
+
+</body>
+</html>
