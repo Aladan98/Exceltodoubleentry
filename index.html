@@ -119,6 +119,15 @@ tr:hover {
     <button onclick="downloadJournal()">Download Journal</button>
     <button onclick="downloadLedger()">Download Ledger</button>
     <button onclick="downloadSample()">Download Sample Excel</button>
+    <label for="platformSelect">Export to Platform</label>
+<select id="platformSelect">
+    <option value="">Select Platform</option>
+    <option value="zoho">Zoho Books</option>
+    <option value="quickbooks">QuickBooks</option>
+    <option value="xero">Xero</option>
+</select>
+<button onclick="exportPlatform()">Export CSV</button>
+
 </div>
 
 <div class="content">
@@ -344,6 +353,51 @@ function downloadLedger(){
     XLSX.writeFile(wb, "Ledger.xlsx");
 }
 
+    function exportPlatform() {
+    const platform = document.getElementById('platformSelect').value;
+    if (!platform) { alert("Select a platform first!"); return; }
+    if (journal.length === 0) { alert("Generate journal first!"); return; }
+
+    let csvData = [];
+
+    if (platform === "zoho") {
+        // Zoho expects: Date, Account, Debit, Credit, Description
+        csvData = journal.map(j => ({
+            "Date": j.Date,
+            "Account Name": j.Account,
+            "Debit": j.Debit || 0,
+            "Credit": j.Credit || 0,
+            "Description": j.Description
+        }));
+    } 
+    else if (platform === "quickbooks") {
+        // QuickBooks expects: Date, Account, Memo, Debit, Credit
+        csvData = journal.map(j => ({
+            "TxnDate": j.Date,
+            "Account": j.Account,
+            "Memo": j.Description,
+            "Debit": j.Debit || 0,
+            "Credit": j.Credit || 0
+        }));
+    } 
+    else if (platform === "xero") {
+        // Xero expects: Date, Account, Description, Amount, TaxType
+        csvData = journal.map(j => ({
+            "Date": j.Date,
+            "Account": j.Account,
+            "Description": j.Description,
+            "Amount": (j.Debit || 0) - (j.Credit || 0),
+            "TaxType": "NONE"
+        }));
+    }
+
+    const ws = XLSX.utils.json_to_sheet(csvData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, platform + "_export");
+    XLSX.writeFile(wb, platform + "_export.csv");
+}
+
+
 function downloadSample(){
     const ws = XLSX.utils.json_to_sheet(sampleData);
     const wb = XLSX.utils.book_new();
@@ -354,5 +408,6 @@ function downloadSample(){
 
 </body>
 </html>
+
 
 
