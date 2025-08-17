@@ -216,8 +216,8 @@ function detectAccount(description){
     let maxHits = 0;
 
     for(const account in accountKeywords){
-        const hits = accountKeywords[account].filter(keyword => words.includes(keyword)).length;
-        if(hits > maxHits){
+       const hits = accountKeywords[acc].filter(keyword => description.includes(keyword)).length;
+           if(hits > maxHits){
             maxHits = hits;
             matchedAccount = account;
         }
@@ -226,13 +226,15 @@ function detectAccount(description){
     return matchedAccount;
 }
 
-function formatDate(date){
+function formatDate(date) {
+    // Handle Excel serial date (numbers like 44940)
+    if (typeof date === "number") {
+        const d = new Date(Math.round((date - 25569) * 86400 * 1000));
+        return d.toISOString().split('T')[0];
+    }
     const d = new Date(date);
-    if(isNaN(d)) return date;
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth()+1).padStart(2,'0');
-    const dd = String(d.getDate()).padStart(2,'0');
-    return `${yyyy}-${mm}-${dd}`;
+    if (isNaN(d)) return date; // fallback to original
+    return d.toISOString().split('T')[0];
 }
 
 function validateSheet(data){
@@ -394,7 +396,8 @@ function downloadLedger(){
     const ws = XLSX.utils.json_to_sheet(csvData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, platform + "_export");
-    XLSX.writeFile(wb, platform + "_export.csv");
+    XLSX.writeFile(wb, platform + "_export.csv", { bookType: "csv" });
+
 }
 
 
@@ -408,6 +411,7 @@ function downloadSample(){
 
 </body>
 </html>
+
 
 
 
