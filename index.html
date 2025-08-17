@@ -191,52 +191,75 @@ function populateSample() {
 }
 populateSample();
 
-function detectAccount(description){
-    if(!description) return "Misc";
-    const accountKeywords = {
-        "Staff Food": ["food","lunch","snack","canteen","meal","dinner","breakfast"],
-        "Legal": ["law","legal","attorney","consultation","fee","court","counsel"],
-        "Stationery": ["stationery","pen","paper","notebook","office supply","envelope","printer paper"],
-        "Printing": ["print","brochure","flyer","poster","printing","banner"],
-        "Car Fix": ["car","fuel","repair","garage","petrol","diesel","service","maintenance"],
-        "Assets": ["asset","computer","printer","equipment","furniture","purchase","sale","machine","device"],
-        "Sales": ["sale","income","revenue","product sale","sold"],
-        "Sales Returns": ["returned","return","refund","damage","delivered","reject"],
-        "Discount Received": ["discount","rebate","reduction"],
-        "Misc": [],
-        "Capital": ["capital","owner contribution","equity","investment"],
-        "Drawings": ["drawing","owner withdrawal","owner draw"],
-        "Liabilities": ["loan","debt","creditor","payable","borrowed"],
-        "Income": ["interest","income","dividend","earning","profit","revenue"]
-    };
+const accountKeywords = {
+    "Staff Food": { keywords: ["food","lunch","snack","canteen","meal","dinner","breakfast"], weight: 1 },
+    "Legal": { keywords: ["law","legal","attorney","consultation","fee","court","counsel"], weight: 1 },
+    "Stationery": { keywords: ["stationery","pen","paper","notebook","office supply","envelope","printer paper"], weight: 1 },
+    "Printing": { keywords: ["print","brochure","flyer","poster","printing","banner"], weight: 1 },
+    "Car Fix": { keywords: ["car","fuel","repair","garage","petrol","diesel","service","maintenance"], weight: 1 },
+    "Assets": { keywords: ["asset","computer","printer","equipment","furniture","purchase","sale","machine","device"], weight: 1 },
+    "Sales": { keywords: ["sale","income","revenue","product sale","sold"], weight: 1 },
+    "Sales Returns": { keywords: ["returned","return","refund","damage","delivered","reject"], weight: 1 },
+    "Discount Received": { keywords: ["discount","rebate","reduction"], weight: 1 },
+    "Misc": { keywords: [], weight: 1 },
+    "Capital": { keywords: ["capital","owner contribution","equity","investment"], weight: 1 },
+    "Drawings": { keywords: ["drawing","owner withdrawal","owner draw"], weight: 1 },
+    "Liabilities": { keywords: ["loan","debt","creditor","payable","borrowed"], weight: 1 },
+    "Income": { keywords: ["interest","income","dividend","earning","profit","revenue"], weight: 1 }
+};
 
-    description = description.toLowerCase();
-    const words = description.split(/[\s,.-]+/);
-    let matchedAccount = "Misc";
-    let maxHits = 0;
+function detectAccount(description) {
+    if (!description) return "Misc";
 
-    for(const acc in accountKeywords){
-    const hits = accountKeywords[acc].filter(keyword => description.includes(keyword)).length;
-    if(hits > maxHits){
-        maxHits = hits;
-        bestMatch = acc;
+    description = description.toLowerCase().trim();
+    let bestMatch = "Misc";
+    let maxScore = 0;
+
+    for (const acc in accountKeywords) {
+        const { keywords, weight } = accountKeywords[acc];
+        const hits = keywords.filter(keyword => 
+            new RegExp(`\\b${keyword}\\b`, 'i').test(description)
+        ).length;
+
+        const score = hits * weight;
+
+        if (score > maxScore) {
+            maxScore = score;
+            bestMatch = acc;
+        }
     }
+
+    return bestMatch;
 }
 
 
-    return matchedAccount;
-}
+function formatDate(excelDate) {
+    if (!excelDate) return ""; // Handle empty cells
 
-function formatDate(date) {
-    // Handle Excel serial date (numbers like 44940)
-    if (typeof date === "number") {
-        const d = new Date(Math.round((date - 25569) * 86400 * 1000));
-        return d.toISOString().split('T')[0];
+    // Excel serial number (assume 1900 system)
+    if (!isNaN(excelDate)) {
+        const jsDate = new Date((excelDate - 25569) * 86400 * 1000);
+        return jsDate.toISOString().split("T")[0];
     }
-    const d = new Date(date);
-    if (isNaN(d)) return date; // fallback to original
-    return d.toISOString().split('T')[0];
+
+    // Text date parsing (DD/MM/YYYY or YYYY-MM-DD)
+    const parts = excelDate.split(/[-\/]/);
+    if (parts.length === 3) {
+        let day, month, year;
+        if (parts[0].length === 4) { // YYYY-MM-DD
+            [year, month, day] = parts;
+        } else { // DD/MM/YYYY
+            [day, month, year] = parts;
+        }
+        const parsedDate = new Date(`${year}-${month}-${day}`);
+        if (!isNaN(parsedDate)) return parsedDate.toISOString().split("T")[0];
+    }
+
+    // fallback for any other formats
+    const fallbackDate = new Date(excelDate);
+    return !isNaN(fallbackDate) ? fallbackDate.toISOString().split("T")[0] : "";
 }
+
 
 function validateSheet(data){
     const required = ["Date","Description","Type","Amount"];
@@ -356,50 +379,50 @@ function downloadLedger(){
     XLSX.writeFile(wb, "Ledger.xlsx");
 }
 
-    function exportPlatform() {
-    const platform = document.getElementById('platformSelect').value;
-    if (!platform) { alert("Select a platform first!"); return; }
-    if (journal.length === 0) { alert("Generate journal first!"); return; }
-
-    let csvData = [];
-
-    if (platform === "zoho") {
-        // Zoho expects: Date, Account, Debit, Credit, Description
-        csvData = journal.map(j => ({
-            "Date": j.Date,
-            "Account Name": j.Account,
-            "Debit": j.Debit || 0,
-            "Credit": j.Credit || 0,
-            "Description": j.Description
-        }));
-    } 
-    else if (platform === "quickbooks") {
-        // QuickBooks expects: Date, Account, Memo, Debit, Credit
-        csvData = journal.map(j => ({
-            "TxnDate": j.Date,
-            "Account": j.Account,
-            "Memo": j.Description,
-            "Debit": j.Debit || 0,
-            "Credit": j.Credit || 0
-        }));
-    } 
-    else if (platform === "xero") {
-        // Xero expects: Date, Account, Description, Amount, TaxType
-        csvData = journal.map(j => ({
-            "Date": j.Date,
-            "Account": j.Account,
-            "Description": j.Description,
-            "Amount": (j.Debit || 0) - (j.Credit || 0),
-            "TaxType": "NONE"
-        }));
+    function exportPlatform(platform) {
+    if (!journalData || journalData.length === 0) {
+        alert("No journal data to export!");
+        return;
     }
 
-    const ws = XLSX.utils.json_to_sheet(csvData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, platform + "_export");
-    XLSX.writeFile(wb, platform + "_export.csv", { bookType: "csv" });
+    let csvContent = "";
 
+    if (platform === "Zoho") {
+        // Zoho Books CSV headers
+        csvContent += "Date,Account,Description,Debit,Credit\n";
+        journalData.forEach(row => {
+            csvContent += `${row.Date},${row.Account},${row.Description},${row.Debit || 0},${row.Credit || 0}\n`;
+        });
+    } 
+    else if (platform === "QuickBooks") {
+        // QuickBooks Desktop CSV headers
+        csvContent += "Date,Account,Debit,Credit,Memo\n";
+        journalData.forEach(row => {
+            csvContent += `${row.Date},${row.Account},${row.Debit || 0},${row.Credit || 0},${row.Description}\n`;
+        });
+    } 
+    else if (platform === "Xero") {
+        // Xero CSV headers
+        csvContent += "Date,Account,Description,Amount,TaxType,TrackingCategory1,TrackingCategory2\n";
+        journalData.forEach(row => {
+            let amount = row.Debit - row.Credit; // Xero uses single Amount column
+            csvContent += `${row.Date},${row.Account},${row.Description},${amount || 0},NONE,,\n`;
+        });
+    } 
+    else {
+        alert("Unknown platform!");
+        return;
+    }
+
+    // Trigger download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${platform}_journal_export.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
 }
+
 
 
 function downloadSample(){
@@ -412,6 +435,7 @@ function downloadSample(){
 
 </body>
 </html>
+
 
 
 
