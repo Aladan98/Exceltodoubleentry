@@ -1,3 +1,5 @@
+review the code 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -182,28 +184,38 @@ function populateSample() {
 populateSample();
 
 function detectAccount(description){
-    const accountKeywords = {
-        "Staff Food": ["food","lunch","snack","canteen","meal"],
-        "Legal": ["law","legal","attorney","consultation","fee"],
-        "Stationery": ["stationery","pen","paper","notebook","office supply"],
-        "Printing": ["print","brochure","flyer","poster","printing"],
-        "Car Fix": ["car","fuel","repair","garage","petrol"],
-        "Assets": ["asset","computer","printer","equipment","furniture","purchase","sale"],
-        "Sales": ["sale","income","revenue","product sale"],
-        "Sales Returns": ["returned","return","refund","damage","delivered"],
-        "Discount Received": ["discount received","rebate","reduction"],
-        "Misc": [],
-        "Capital": ["capital","owner contribution","equity"],
-        "Drawings": ["drawing","owner withdrawal","owner draw"],
-        "Liabilities": ["loan","debt","creditor","payable"],
-        "Income": ["interest","income","dividend","earning"]
-    };
     if(!description) return "Misc";
+    const accountKeywords = {
+        "Staff Food": ["food","lunch","snack","canteen","meal","dinner","breakfast"],
+        "Legal": ["law","legal","attorney","consultation","fee","court","counsel"],
+        "Stationery": ["stationery","pen","paper","notebook","office supply","envelope","printer paper"],
+        "Printing": ["print","brochure","flyer","poster","printing","banner"],
+        "Car Fix": ["car","fuel","repair","garage","petrol","diesel","service","maintenance"],
+        "Assets": ["asset","computer","printer","equipment","furniture","purchase","sale","machine","device"],
+        "Sales": ["sale","income","revenue","product sale","sold"],
+        "Sales Returns": ["returned","return","refund","damage","delivered","reject"],
+        "Discount Received": ["discount","rebate","reduction"],
+        "Misc": [],
+        "Capital": ["capital","owner contribution","equity","investment"],
+        "Drawings": ["drawing","owner withdrawal","owner draw"],
+        "Liabilities": ["loan","debt","creditor","payable","borrowed"],
+        "Income": ["interest","income","dividend","earning","profit","revenue"]
+    };
+
     description = description.toLowerCase();
+    const words = description.split(/[\s,.-]+/);
+    let matchedAccount = "Misc";
+    let maxHits = 0;
+
     for(const account in accountKeywords){
-        if(accountKeywords[account].some(keyword => description.includes(keyword))) return account;
+        const hits = accountKeywords[account].filter(keyword => words.includes(keyword)).length;
+        if(hits > maxHits){
+            maxHits = hits;
+            matchedAccount = account;
+        }
     }
-    return "Misc";
+
+    return matchedAccount;
 }
 
 function formatDate(date){
@@ -303,8 +315,8 @@ function displayLedger(){
         ledger[acc].forEach(entry => {
             balance += (entry.Debit || 0) - (entry.Credit || 0);
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${acc}</td><td>${entry.Date}</td><td>${entry.Description}</td><td class="debit">${entry.Debit || ''}</td><td class="credit">${entry.Credit || ''}</td><td>${balance}</td>`;
-            table.appendChild(tr);
+(tr.innerHTML = `<td>${acc}</td><td>${entry.Date}</td><td>${entry.Description}</td><td class="debit">${(entry.Debit||0).toFixed(2)}</td><td class="credit">${(entry.Credit||0).toFixed(2)}</td><td>${balance.toFixed(2)}</td>`);
+    table.appendChild(tr);
         });
     }
 }
