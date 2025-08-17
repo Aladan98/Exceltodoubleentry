@@ -215,13 +215,14 @@ function detectAccount(description){
     let matchedAccount = "Misc";
     let maxHits = 0;
 
-    for(const account in accountKeywords){
-       const hits = accountKeywords[acc].filter(keyword => description.includes(keyword)).length;
-           if(hits > maxHits){
-            maxHits = hits;
-            matchedAccount = account;
-        }
+    for(const acc in accountKeywords){
+    const hits = accountKeywords[acc].filter(keyword => description.includes(keyword)).length;
+    if(hits > maxHits){
+        maxHits = hits;
+        bestMatch = acc;
     }
+}
+
 
     return matchedAccount;
 }
@@ -411,6 +412,7 @@ function downloadSample(){
 
 </body>
 </html>
+
 
 
 
