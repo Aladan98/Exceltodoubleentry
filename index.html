@@ -3,35 +3,114 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Petty Cash Accounting Tool</title>
+<title>Advanced Petty Cash Accounting Tool</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-/* Modern Dark Theme */
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:0; background: #121212; color:#e0e0e0; }
-header { background:#1f1f1f; color:#00e676; padding:15px 20px; font-size:1.5rem; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.5);}
-main { display:flex; padding:20px; gap:20px; }
-.sidebar { width:250px; background:#1b1b1b; padding:15px; border-radius:10px; display:flex; flex-direction:column; gap:10px; }
-.sidebar input, .sidebar button { padding:10px; border-radius:5px; border:none; font-size:1rem; }
-.sidebar input { background:#272727; color:#e0e0e0; }
-.sidebar button { background:#00e676; color:#121212; font-weight:bold; cursor:pointer; transition:0.2s; }
-.sidebar button:hover { background:#00c853; }
-.content { flex:1; display:flex; flex-direction:column; gap:20px; }
-table { width:100%; border-collapse:collapse; border-radius:10px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.5); }
-th, td { padding:10px; text-align:left; border-bottom:1px solid #333; }
-th { background:#272727; cursor:pointer; user-select:none; position:sticky; top:0; z-index:1; }
-tr:nth-child(even) { background:#1a1a1a; }
-tr:hover { background:#333; }
-.scrollable { max-height:300px; overflow-y:auto; border-radius:10px; }
-.debit { color:#4caf50; font-weight:bold; }
-.credit { color:#f44336; font-weight:bold; }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #121212;
+    color: #e0e0e0;
+    margin: 0;
+}
+header {
+    background: #1f1f1f;
+    color: #00e676;
+    padding: 15px 20px;
+    font-size: 1.6rem;
+    font-weight: bold;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+main {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 20px;
+    gap: 20px;
+}
+.sidebar {
+    width: 280px;
+    background: #1a1a1a;
+    padding: 15px;
+    border-radius: 10px;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+.sidebar button, .sidebar input {
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+}
+.sidebar button {
+    background: #00e676;
+    color: #121212;
+    font-weight: bold;
+    transition: 0.2s;
+}
+.sidebar button:hover {
+    background: #00c853;
+}
+.sidebar input {
+    background: #2a2a2a;
+    color: #e0e0e0;
+}
+.content {
+    flex: 1;
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #1f1f1f;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #333;
+}
+th {
+    background: #333;
+    color: #00e676;
+    position: sticky;
+    top: 0;
+}
+tr:nth-child(even) {
+    background: #1a1a1a;
+}
+tr:hover {
+    background: #333;
+}
+.scrollable {
+    max-height: 300px;
+    overflow-y: auto;
+    border-radius: 10px;
+}
+.debit { color: #00e676; font-weight: bold; }
+.credit { color: #ff5252; font-weight: bold; }
+.highlight { background: #ff9800 !important; color: #000; }
+@media(max-width: 768px){
+    main { flex-direction: column; }
+    .sidebar { width: 100%; }
+}
 </style>
 </head>
 <body>
 
-<header>Petty Cash Accounting Software</header>
+<header>Advanced Petty Cash Accounting Software</header>
 <main>
-  <div class="sidebar">
-    <input type="text" id="counterAccount" placeholder="Counter Account e.g. Petty Cash">
+<div class="sidebar">
+    <label for="counterAccount">Counter Account</label>
+    <input type="text" id="counterAccount" placeholder="Counter Account e.g. Bank">
+    <label for="fileInput">Upload Excel/CSV</label>
     <input type="file" id="fileInput" accept=".xlsx,.csv">
     <button onclick="loadExcel()">Load Excel</button>
     <button onclick="generateJournal()">Generate Journal</button>
@@ -39,34 +118,37 @@ tr:hover { background:#333; }
     <button onclick="downloadJournal()">Download Journal</button>
     <button onclick="downloadLedger()">Download Ledger</button>
     <button onclick="downloadSample()">Download Sample Excel</button>
-  </div>
+</div>
 
-  <div class="content">
+<div class="content">
     <h2>Sample Excel Preview</h2>
     <div class="scrollable">
-      <table id="sampleTable">
-        <tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Account</th></tr>
-      </table>
+        <table id="sampleTable">
+            <tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Account</th></tr>
+        </table>
     </div>
 
     <h2>Journal Entries</h2>
     <div class="scrollable">
-      <table id="journalTable">
-        <tr><th>Date</th><th>Account</th><th>Debit</th><th>Credit</th><th>Description</th></tr>
-      </table>
+        <table id="journalTable">
+            <tr><th>Date</th><th>Account</th><th>Debit</th><th>Credit</th><th>Description</th></tr>
+        </table>
     </div>
 
     <h2>General Ledger</h2>
     <div class="scrollable">
-      <table id="ledgerTable">
-        <tr><th>Account</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
-      </table>
+        <table id="ledgerTable">
+            <tr><th>Account</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
+        </table>
     </div>
-  </div>
+</div>
 </main>
 
 <script>
-let sheetData = [], journal = [], ledger = {};
+let sheetData = [];
+let journal = [];
+let ledger = {};
+
 const sampleData = [
   {Date:"2025-08-01", Description:"Office Supplies Purchase", Type:"Payment", Amount:120, Account:"Stationery"},
   {Date:"2025-08-02", Description:"Staff Lunch", Type:"Payment", Amount:45, Account:"Staff Food"},
@@ -81,167 +163,184 @@ const sampleData = [
   {Date:"2025-08-11", Description:"Sales Returned – Product A", Type:"Payment", Amount:100, Account:"Sales Returns"},
   {Date:"2025-08-12", Description:"Legal Fee", Type:"Payment", Amount:250, Account:"Legal"},
   {Date:"2025-08-13", Description:"Printing Flyers", Type:"Payment", Amount:150, Account:"Printing"},
-  {Date:"2025-08-14", Description:"Misc Expenses", Type:"Payment", Amount:60, Account:"Misc"}
+  {Date:"2025-08-14", Description:"Misc Expenses", Type:"Payment", Amount:60, Account:"Misc"},
+  {Date:"2025-08-15", Description:"Owner Capital Contribution", Type:"Receipt", Amount:1000, Account:"Capital"},
+  {Date:"2025-08-16", Description:"Owner Drawing", Type:"Payment", Amount:200, Account:"Drawings"},
+  {Date:"2025-08-17", Description:"Bank Interest Income", Type:"Receipt", Amount:75, Account:"Income"},
+  {Date:"2025-08-18", Description:"Loan Repayment", Type:"Payment", Amount:500, Account:"Liabilities"}
 ];
 
-// Populate Sample Preview
-function populateSample(){
-  const table=document.getElementById('sampleTable');
-  sampleData.forEach(row=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${row.Date}</td><td>${row.Description}</td><td>${row.Type}</td><td>${row.Amount}</td><td>${row.Account}</td>`;
-    table.appendChild(tr);
-  });
+function populateSample() {
+    const table = document.getElementById('sampleTable');
+    table.innerHTML = '<tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Account</th></tr>';
+    sampleData.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${row.Date}</td><td>${row.Description}</td><td>${row.Type}</td><td>${row.Amount}</td><td>${row.Account}</td>`;
+        table.appendChild(tr);
+    });
 }
 populateSample();
 
-// Enhanced Account Detection with extra keywords
 function detectAccount(description){
-  const accountKeywords = {
-    "Staff Food": ["food","canteen","lunch","snack","meal"],
-    "Legal": ["law","legal","attorney","consultation","fee","counsel"],
-    "Stationery": ["stationery","pen","paper","office supply","notebook","envelopes"],
-    "Printing": ["print","brochure","flyer","poster","banner"],
-    "Car Fix": ["car","fuel","repair","garage","service","vehicle"],
-    "Assets": ["asset","computer","printer","purchase","sale","equipment"],
-    "Sales": ["sale","income","revenue","delivered","sold"],
-    "Sales Returns": ["returned","return","refund","damages","defective"],
-    "Discount Received": ["discount received","rebate","allowance"],
-    "Misc": []
-  };
-  if(!description) return "Misc";
-  description=description.toLowerCase();
-  for(const [account, keywords] of Object.entries(accountKeywords)){
-    for(const kw of keywords){
-      if(description.includes(kw)) return account;
+    const accountKeywords = {
+        "Staff Food": ["food","lunch","snack","canteen","meal"],
+        "Legal": ["law","legal","attorney","consultation","fee"],
+        "Stationery": ["stationery","pen","paper","notebook","office supply"],
+        "Printing": ["print","brochure","flyer","poster","printing"],
+        "Car Fix": ["car","fuel","repair","garage","petrol"],
+        "Assets": ["asset","computer","printer","equipment","furniture","purchase","sale"],
+        "Sales": ["sale","income","revenue","product sale"],
+        "Sales Returns": ["returned","return","refund","damage","delivered"],
+        "Discount Received": ["discount received","rebate","reduction"],
+        "Misc": [],
+        "Capital": ["capital","owner contribution","equity"],
+        "Drawings": ["drawing","owner withdrawal","owner draw"],
+        "Liabilities": ["loan","debt","creditor","payable"],
+        "Income": ["interest","income","dividend","earning"]
+    };
+    if(!description) return "Misc";
+    description = description.toLowerCase();
+    for(const account in accountKeywords){
+        if(accountKeywords[account].some(keyword => description.includes(keyword))) return account;
     }
-  }
-  return "Misc";
+    return "Misc";
 }
 
-// Load Excel
-function loadExcel(){
-  const file=document.getElementById('fileInput').files[0];
-  if(!file){ alert("Please select an Excel file first."); return; }
-  const reader=new FileReader();
-  reader.onload=function(e){
-    const data=new Uint8Array(e.target.result);
-    const workbook=XLSX.read(data,{type:'array'});
-    const ws=workbook.Sheets[workbook.SheetNames[0]];
-    sheetData=XLSX.utils.sheet_to_json(ws);
-    alert('Loaded '+sheetData.length+' transactions.');
-  };
-  reader.readAsArrayBuffer(file);
+function formatDate(date){
+    const d = new Date(date);
+    if(isNaN(d)) return date;
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    return `${yyyy}-${mm}-${dd}`;
 }
 
-// Generate Journal
+function validateSheet(data){
+    const required = ["Date","Description","Type","Amount"];
+    for(const row of data){
+        for(const key of required){
+            if(!(key in row) || row[key]==="") return false;
+        }
+    }
+    return true;
+}
+
+function loadExcel() {
+    const file = document.getElementById('fileInput').files[0];
+    if(!file){ alert("Select a file first!"); return; }
+    const reader = new FileReader();
+    reader.onload = function(e){
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data,{type:"array"});
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+        if(!validateSheet(jsonData)){ alert("Excel missing required columns!"); return; }
+        sheetData = jsonData;
+        displaySheet(sheetData);
+        alert("Excel loaded successfully!");
+    }
+    reader.readAsArrayBuffer(file);
+}
+
+function displaySheet(data){
+    const table = document.getElementById('sampleTable');
+    table.innerHTML = '<tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Account</th></tr>';
+    data.forEach(row => {
+        const account = detectAccount(row.Description);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${formatDate(row.Date)}</td><td>${row.Description}</td><td>${row.Type}</td><td>${row.Amount}</td><td>${account}</td>`;
+        table.appendChild(tr);
+    });
+}
+
 function generateJournal(){
-  if(!sheetData.length){ alert("No data loaded!"); return; }
-  const table=document.getElementById('journalTable');
-  table.innerHTML='<tr><th>Date</th><th>Account</th><th>Debit</th><th>Credit</th><th>Description</th></tr>';
-  journal=[];
-  const counterAccount=document.getElementById('counterAccount').value||"Petty Cash";
-
-  sheetData.forEach(row=>{
-    const {Date, Description, Type, Amount, Account}=row;
-    const amt=parseFloat(Amount);
-    if(!Type || !amt) return;
-    const accountToUse = Account || detectAccount(Description);
-
-    if(Type.toLowerCase() === 'receipt'){
-      journal.push({Date, Account:counterAccount, Debit:amt, Credit:'', Description});
-      journal.push({Date, Account:accountToUse, Debit:'', Credit:amt, Description});
-    } else {
-      journal.push({Date, Account:accountToUse, Debit:amt, Credit:'', Description});
-      journal.push({Date, Account:counterAccount, Debit:'', Credit:amt, Description});
-    }
-  });
-
-  renderRows(journal, table);
-  enableSorting();
+    if(sheetData.length===0){ alert("Load data first!"); return; }
+    journal = [];
+    ledger = {};
+    const counterAccount = document.getElementById('counterAccount').value || "Cash";
+    sheetData.forEach(row => {
+        const acc = detectAccount(row.Description);
+        const amount = parseFloat(row.Amount);
+        const date = formatDate(row.Date);
+        if(row.Type.toLowerCase()==="payment"){
+            journal.push({Date:date,Account:acc,Debit:amount,Credit:0,Description:row.Description});
+            journal.push({Date:date,Account:counterAccount,Debit:0,Credit:amount,Description:row.Description});
+        } else {
+            journal.push({Date:date,Account:counterAccount,Debit:amount,Credit:0,Description:row.Description});
+            journal.push({Date:date,Account:acc,Debit:0,Credit:amount,Description:row.Description});
+        }
+    });
+    displayJournal();
+    alert("Journal generated!");
 }
 
-// Generate Ledger
+function displayJournal(){
+    const table = document.getElementById('journalTable');
+    table.innerHTML = '<tr><th>Date</th><th>Account</th><th>Debit</th><th>Credit</th><th>Description</th></tr>';
+    journal.forEach(entry => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${entry.Date}</td><td>${entry.Account}</td><td class="debit">${entry.Debit || ''}</td><td class="credit">${entry.Credit || ''}</td><td>${entry.Description}</td>`;
+        table.appendChild(tr);
+    });
+}
+
 function generateLedger(){
-  if(!journal.length){ alert("Generate journal first!"); return; }
-  ledger={};
-  const table=document.getElementById('ledgerTable');
-  table.innerHTML='<tr><th>Account</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>';
-
-  journal.forEach(jr=>{
-    if(!ledger[jr.Account]) ledger[jr.Account]=[];
-    ledger[jr.Account].push(jr);
-  });
-
-  for(const account of Object.keys(ledger)){
-    let balance=0;
-    ledger[account].forEach(jr=>{
-      const debit=parseFloat(jr.Debit)||0;
-      const credit=parseFloat(jr.Credit)||0;
-      balance += debit - credit;
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${account}</td><td>${jr.Date}</td><td>${jr.Description}</td>
-      <td class="debit">${debit||''}</td><td class="credit">${credit||''}</td><td>${balance}</td>`;
-      table.appendChild(tr);
+    if(journal.length===0){ alert("Generate journal first!"); return; }
+    ledger = {};
+    journal.forEach(entry => {
+        if(!ledger[entry.Account]) ledger[entry.Account] = [];
+        ledger[entry.Account].push({...entry});
     });
-  }
-  enableSorting();
+    displayLedger();
+    alert("General Ledger generated!");
 }
 
-// Render Rows Utility
-function renderRows(rows, table){
-  rows.forEach(r=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${r.Date}</td><td>${r.Account}</td><td class="debit">${r.Debit||''}</td><td class="credit">${r.Credit||''}</td><td>${r.Description}</td>`;
-    table.appendChild(tr);
-  });
+function displayLedger(){
+    const table = document.getElementById('ledgerTable');
+    table.innerHTML = '<tr><th>Account</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>';
+    for(const acc in ledger){
+        let balance = 0;
+        ledger[acc].forEach(entry => {
+            balance += (entry.Debit || 0) - (entry.Credit || 0);
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${acc}</td><td>${entry.Date}</td><td>${entry.Description}</td><td class="debit">${entry.Debit || ''}</td><td class="credit">${entry.Credit || ''}</td><td>${balance}</td>`;
+            table.appendChild(tr);
+        });
+    }
 }
 
-// Enable Sorting
-function sortTable(tableId,colIndex,type='string'){
-  const table=document.getElementById(tableId);
-  const rows=Array.from(table.rows).slice(1);
-  let asc=table.getAttribute('data-sort-col')!=colIndex || table.getAttribute('data-sort-asc')==='false';
-  rows.sort((a,b)=>{
-    let valA=a.cells[colIndex].innerText.trim();
-    let valB=b.cells[colIndex].innerText.trim();
-    if(type==='number'){ valA=parseFloat(valA)||0; valB=parseFloat(valB)||0; }
-    if(type==='date'){ valA=new Date(valA); valB=new Date(valB); }
-    return asc ? (valA>valB?1:-1) : (valA<valB?1:-1);
-  });
-  rows.forEach(r=>table.appendChild(r));
-  table.setAttribute('data-sort-col',colIndex);
-  table.setAttribute('data-sort-asc',asc);
+function downloadJournal(){
+    if(journal.length===0){ alert("Generate journal first!"); return; }
+    const ws = XLSX.utils.json_to_sheet(journal);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Journal");
+    XLSX.writeFile(wb, "Journal.xlsx");
 }
 
-function enableSorting(){
-  ['journalTable','ledgerTable','sampleTable'].forEach(id=>{
-    const table=document.getElementById(id);
-    Array.from(table.rows[0].cells).forEach((th,i)=>{
-      let type='string';
-      if(th.innerText.toLowerCase().includes('debit') || th.innerText.toLowerCase().includes('credit') || th.innerText.toLowerCase().includes('balance')) type='number';
-      if(th.innerText.toLowerCase().includes('date')) type='date';
-      th.onclick=()=>sortTable(id,i,type);
-    });
-  });
+function downloadLedger(){
+    if(Object.keys(ledger).length===0){ alert("Generate ledger first!"); return; }
+    let allEntries = [];
+    for(const acc in ledger){
+        let balance=0;
+        ledger[acc].forEach(entry => {
+            balance += (entry.Debit || 0) - (entry.Credit || 0);
+            allEntries.push({...entry, Balance:balance, Account:acc});
+        });
+    }
+    const ws = XLSX.utils.json_to_sheet(allEntries);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Ledger");
+    XLSX.writeFile(wb, "Ledger.xlsx");
 }
 
-// Download Excel
-function downloadJournal(){ downloadTable('journalTable','Journal.xlsx'); }
-function downloadLedger(){ downloadTable('ledgerTable','Ledger.xlsx'); }
-function downloadSample(){ 
-  const wb=XLSX.utils.book_new();
-  const ws=XLSX.utils.json_to_sheet(sampleData);
-  XLSX.utils.book_append_sheet(wb, ws, "Sample");
-  XLSX.writeFile(wb, "Sample_Transactions.xlsx");
-}
-function downloadTable(tableId, filename){
-  const table=document.getElementById(tableId);
-  const ws=XLSX.utils.table_to_sheet(table);
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, tableId);
-  XLSX.writeFile(wb, filename);
+function downloadSample(){
+    const ws = XLSX.utils.json_to_sheet(sampleData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sample");
+    XLSX.writeFile(wb, "SamplePettyCash.xlsx");
 }
 </script>
+
 </body>
 </html>
+
