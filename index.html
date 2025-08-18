@@ -379,34 +379,34 @@ function downloadLedger(){
     XLSX.writeFile(wb, "Ledger.xlsx");
 }
 
-    function exportPlatform(platform) {
-    if (!journalData || journalData.length === 0) {
+    function exportPlatform() {
+    if (!journal || journal.length === 0) {
         alert("No journal data to export!");
         return;
     }
 
+    const platform = document.getElementById("platformSelect").value;
+    if (!platform) { alert("Select a platform!"); return; }
+
     let csvContent = "";
 
-    if (platform === "Zoho") {
-        // Zoho Books CSV headers
+    if (platform === "zoho") {
         csvContent += "Date,Account,Description,Debit,Credit\n";
-        journalData.forEach(row => {
+        journal.forEach(row => {
             csvContent += `${row.Date},${row.Account},${row.Description},${row.Debit || 0},${row.Credit || 0}\n`;
         });
     } 
-    else if (platform === "QuickBooks") {
-        // QuickBooks Desktop CSV headers
+    else if (platform === "quickbooks") {
         csvContent += "Date,Account,Debit,Credit,Memo\n";
-        journalData.forEach(row => {
+        journal.forEach(row => {
             csvContent += `${row.Date},${row.Account},${row.Debit || 0},${row.Credit || 0},${row.Description}\n`;
         });
     } 
-    else if (platform === "Xero") {
-        // Xero CSV headers
+    else if (platform === "xero") {
         csvContent += "Date,Account,Description,Amount,TaxType,TrackingCategory1,TrackingCategory2\n";
-        journalData.forEach(row => {
-            let amount = row.Debit - row.Credit; // Xero uses single Amount column
-            csvContent += `${row.Date},${row.Account},${row.Description},${amount || 0},NONE,,\n`;
+        journal.forEach(row => {
+            let amount = (row.Debit || 0) - (row.Credit || 0);
+            csvContent += `${row.Date},${row.Account},${row.Description},${amount},NONE,,\n`;
         });
     } 
     else {
@@ -414,6 +414,13 @@ function downloadLedger(){
         return;
     }
 
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${platform}_journal_export.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+}
     // Trigger download
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
@@ -435,6 +442,7 @@ function downloadSample(){
 
 </body>
 </html>
+
 
 
 
