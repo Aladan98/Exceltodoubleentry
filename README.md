@@ -1,5 +1,6 @@
 # Excel-2-doubleentry
 Excel-to-Double-Entry Accounting Tool
+LEDGIOX
 
 A web-based tool that allows users to upload Excel or CSV files and automatically generate double-entry accounting records. It includes features like chart of accounts, automatic journal entry generation, trial balance, Profit & Loss, and Balance Sheet reports.
 
