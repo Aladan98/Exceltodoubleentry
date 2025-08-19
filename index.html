@@ -127,7 +127,8 @@ tr:hover {
     <option value="xero">Xero</option>
 </select>
 <button onclick="exportPlatform()">Export CSV</button>
-
+  </div>
+    
 <div class="content">
     <div class="tabs">
       <button class="tablink" onclick="openTab('journalTab')">Journal</button>
@@ -233,32 +234,57 @@ function detectAccount(description) {
 }
 
 
+// Robust date formatting function
 function formatDate(excelDate) {
-    if (!excelDate) return ""; // Handle empty cells
+    if (excelDate == null || excelDate.toString().trim() === "") return "";
 
-    // Excel serial number (assume 1900 system)
+    // Excel serial number (1900 system)
     if (!isNaN(excelDate)) {
-        const jsDate = new Date((excelDate - 25569) * 86400 * 1000);
-        return jsDate.toISOString().split("T")[0];
+        const jsDate = new Date((Number(excelDate) - 25569) * 86400 * 1000);
+        if (!isNaN(jsDate.getTime())) return jsDate.toISOString().split("T")[0];
+        return "";
     }
 
-    // Text date parsing (DD/MM/YYYY or YYYY-MM-DD)
-   const parts = excelDate.toString().split(/[-\/]/);
+    // Text date parsing (DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD)
+    const parts = excelDate.toString().split(/[-\/]/);
     if (parts.length === 3) {
         let day, month, year;
+
         if (parts[0].length === 4) { // YYYY-MM-DD
             [year, month, day] = parts;
-        } else { // DD/MM/YYYY
+        } else if (parts[2].length === 4) { // DD/MM/YYYY or MM/DD/YYYY
             [day, month, year] = parts;
+        } else {
+            return ""; // Unknown format
         }
+
+        // Zero-pad month/day
+        month = String(month).padStart(2, "0");
+        day = String(day).padStart(2, "0");
+
         const parsedDate = new Date(`${year}-${month}-${day}`);
-        if (!isNaN(parsedDate)) return parsedDate.toISOString().split("T")[0];
+        if (!isNaN(parsedDate.getTime())) return parsedDate.toISOString().split("T")[0];
     }
 
-    // fallback for any other formats
+    // Fallback to Date constructor
     const fallbackDate = new Date(excelDate);
-    return !isNaN(fallbackDate) ? fallbackDate.toISOString().split("T")[0] : "";
+    return !isNaN(fallbackDate.getTime()) ? fallbackDate.toISOString().split("T")[0] : "";
 }
+
+// Robust sheet validation
+function validateSheet(data) {
+    const required = ["Date", "Description", "Type", "Amount"];
+    if (!Array.isArray(data) || data.length === 0) return false;
+
+    for (const row of data) {
+        for (const key of required) {
+            const value = row[key];
+            if (value == null || value.toString().trim() === "") return false;
+        }
+    }
+    return true;
+}
+
 
 
 function validateSheet(data){
@@ -270,55 +296,86 @@ function validateSheet(data){
     }
     return true;
 }
+let sheetData = []; // Global store for loaded sheet
+let journal = [];   // Global store for generated journal
 
 function loadExcel() {
-    const file = document.getElementById('fileInput').files[0];
-    if(!file){ alert("Select a file first!"); return; }
-    const reader = new FileReader();
-    reader.onload = function(e){
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data,{type:"array"});
-        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-        if(!validateSheet(jsonData)){ alert("Excel missing required columns!"); return; }
-        sheetData = jsonData;
-        displaySheet(sheetData);
-        alert("Excel loaded successfully!");
+    const fileInput = document.getElementById('fileInput');
+    if (!fileInput || !fileInput.files[0]) {
+        alert("Select a file first!");
+        return;
     }
+
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: "array" });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+            if (!validateSheet(jsonData)) {
+                alert("Excel missing required columns or has empty cells!");
+                return;
+            }
+
+            sheetData = jsonData;
+            displaySheet(sheetData);
+            alert("Excel loaded successfully!");
+        } catch (err) {
+            console.error(err);
+            alert("Error reading Excel file. Make sure it is valid.");
+        }
+    };
+
+    reader.onerror = function(err) {
+        console.error(err);
+        alert("Failed to read the file.");
+    };
+
     reader.readAsArrayBuffer(file);
 }
 
-function displaySheet(data){
-    const table = document.getElementById('sampleTable');
-    table.innerHTML = '<tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Account</th></tr>';
-    data.forEach(row => {
-        const account = detectAccount(row.Description);
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${formatDate(row.Date)}</td><td>${row.Description}</td><td>${row.Type}</td><td>${row.Amount}</td><td>${account}</td>`;
-        table.appendChild(tr);
-    });
-}
+function generateJournal() {
+    if (!Array.isArray(sheetData) || sheetData.length === 0) {
+        alert("Load data first!");
+        return;
+    }
 
-function generateJournal(){
-    if(sheetData.length===0){ alert("Load data first!"); return; }
     journal = [];
-    ledger = {};
-    const counterAccount = document.getElementById('counterAccount').value || "Cash";
-    sheetData.forEach(row => {
-        const acc = detectAccount(row.Description);
+    const counterAccount = document.getElementById('counterAccount')?.value?.trim() || "Cash";
+
+    sheetData.forEach((row, index) => {
+        const acc = detectAccount(row.Description) || "Unknown";
         const amount = parseFloat(row.Amount);
         const date = formatDate(row.Date);
-        if(row.Type.toLowerCase()==="payment"){
-            journal.push({Date:date,Account:acc,Debit:amount,Credit:0,Description:row.Description});
-            journal.push({Date:date,Account:counterAccount,Debit:0,Credit:amount,Description:row.Description});
-        } else {
-            journal.push({Date:date,Account:counterAccount,Debit:amount,Credit:0,Description:row.Description});
-            journal.push({Date:date,Account:acc,Debit:0,Credit:amount,Description:row.Description});
+        const type = (row.Type || "").toLowerCase();
+
+        if (!date || isNaN(amount) || !type) {
+            console.warn(`Skipping row ${index + 1} due to invalid data`);
+            return; // Skip invalid rows
+        }
+
+        if (type === "payment") {
+            journal.push({ Date: date, Account: acc, Debit: amount, Credit: 0, Description: row.Description });
+            journal.push({ Date: date, Account: counterAccount, Debit: 0, Credit: amount, Description: row.Description });
+        } else { // assume receipt or other
+            journal.push({ Date: date, Account: counterAccount, Debit: amount, Credit: 0, Description: row.Description });
+            journal.push({ Date: date, Account: acc, Debit: 0, Credit: amount, Description: row.Description });
         }
     });
+
+    if (journal.length === 0) {
+        alert("No valid journal entries generated.");
+        return;
+    }
+
     displayJournal();
     alert("Journal generated!");
 }
+
 
 function displayJournal(){
     const table = document.getElementById('journalTable');
@@ -537,6 +594,7 @@ openTab('journalTab');
 
 </body>
 </html>
+
 
 
 
