@@ -128,31 +128,29 @@ tr:hover {
 </select>
 <button onclick="exportPlatform()">Export CSV</button>
 
+<div class="tabs">
+  <button class="tablink" onclick="openTab('journalTab')">Journal</button>
+  <button class="tablink" onclick="openTab('ledgerTab')">Ledger</button>
 </div>
 
-<div class="content">
-    <h2>Sample Excel Preview</h2>
-    <div class="scrollable">
-        <table id="sampleTable">
-            <tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Account</th></tr>
-        </table>
-    </div>
-
-    <h2>Journal Entries</h2>
-    <div class="scrollable">
-        <table id="journalTable">
-            <tr><th>Date</th><th>Account</th><th>Debit</th><th>Credit</th><th>Description</th></tr>
-        </table>
-    </div>
-
-    <h2>General Ledger</h2>
-    <div class="scrollable">
-        <table id="ledgerTable">
-            <tr><th>Account</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
-        </table>
-    </div>
+<div id="journalTab" class="tabcontent">
+  <h2>Journal</h2>
+  <div class="scrollable">
+      <table id="journalTable">
+          <tr><th>Date</th><th>Account</th><th>Debit</th><th>Credit</th><th>Description</th></tr>
+      </table>
+  </div>
 </div>
-</main>
+
+<div id="ledgerTab" class="tabcontent">
+  <h2>Ledger</h2>
+  <div class="scrollable">
+      <table id="ledgerTable">
+          <tr><th>Account</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
+      </table>
+  </div>
+</div>
+
 
 <script>
 let sheetData = [];
@@ -189,7 +187,6 @@ function populateSample() {
         table.appendChild(tr);
     });
 }
-populateSample();
 
 const accountKeywords = {
     "Staff Food": { keywords: ["food","lunch","snack","canteen","meal","dinner","breakfast"], weight: 1 },
@@ -323,12 +320,26 @@ function generateJournal(){
 function displayJournal(){
     const table = document.getElementById('journalTable');
     table.innerHTML = '<tr><th>Date</th><th>Account</th><th>Debit</th><th>Credit</th><th>Description</th></tr>';
-    journal.forEach(entry => {
+    journal.forEach((entry, index) => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${entry.Date}</td><td>${entry.Account}</td><td class="debit">${entry.Debit || ''}</td><td class="credit">${entry.Credit || ''}</td><td>${entry.Description}</td>`;
+        tr.innerHTML = `
+            <td>${entry.Date}</td>
+            <td><input type="text" value="${entry.Account}" onchange="updateAccount(${index}, this.value)"></td>
+            <td class="debit">${entry.Debit || ''}</td>
+            <td class="credit">${entry.Credit || ''}</td>
+            <td>${entry.Description}</td>
+        `;
         table.appendChild(tr);
     });
 }
+
+    function updateAccount(index, newValue){
+    journal[index].Account = newValue;
+    // Optionally, regenerate ledger after edits
+    generateLedger();
+}
+
+
 
 function generateLedger(){
     if(journal.length===0){ alert("Generate journal first!"); return; }
@@ -379,14 +390,17 @@ function downloadLedger(){
     XLSX.writeFile(wb, "Ledger.xlsx");
 }
 
-    function exportPlatform() {
+function exportPlatform() {
     if (!journal || journal.length === 0) {
         alert("No journal data to export!");
         return;
     }
 
     const platform = document.getElementById("platformSelect").value;
-    if (!platform) { alert("Select a platform!"); return; }
+    if (!platform) { 
+        alert("Select a platform!"); 
+        return; 
+    }
 
     // Group entries by month
     const monthlyData = {};
@@ -401,44 +415,38 @@ function downloadLedger(){
         const rows = monthlyData[month];
 
         if(platform === "zoho"){
-    csvContent += "Date,Account,Description,Debit,Credit\n";
-    rows.forEach(r => {
-        csvContent += `${r.Date},${r.Account},${r.Description},${r.Debit || 0},${r.Credit || 0}\n`;
-    });
-}
-else if(platform === "quickbooks"){
-    csvContent += "TxnDate,Account,Debit,Credit,Memo\n";
-    rows.forEach(r => {
-        csvContent += `${r.Date},${r.Account},${r.Debit || 0},${r.Credit || 0},${r.Description}\n`;
-    });
-}
-else if(platform === "xero"){
-    csvContent += "Date,Account,Description,Amount,Type\n";
-    rows.forEach(r => {
-        const type = r.Debit > 0 ? "Debit" : "Credit";
-        const amount = r.Debit > 0 ? r.Debit : r.Credit;
-        csvContent += `${r.Date},${r.Account},${r.Description},${amount},${type}\n`;
-    });
-}
-
-        else {
+            csvContent += "Date,Account,Description,Debit,Credit\n";
+            rows.forEach(r => {
+                csvContent += `${r.Date},${r.Account},${r.Description},${r.Debit || ''},${r.Credit || ''}\n`;
+            });
+        } else if(platform === "quickbooks"){
+            csvContent += "Date,Account,Debit,Credit,Memo\n";
+            rows.forEach(r => {
+                csvContent += `${r.Date},${r.Account},${r.Debit || ''},${r.Credit || ''},${r.Description}\n`;
+            });
+        } else if(platform === "xero"){
+            csvContent += "Date,Account,Description,Amount\n";
+            rows.forEach(r => {
+                const amount = (r.Debit || 0) - (r.Credit || 0);
+                csvContent += `${r.Date},${r.Account},${r.Description},${amount}\n`;
+            });
+        } else {
             alert("Unknown platform!");
             return;
         }
 
-        // Trigger download for each month
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-const url = URL.createObjectURL(blob);
-const a = document.createElement("a");
-a.href = url;
-a.download = `${platform}_journal_${month}.csv`;
-document.body.appendChild(a);
-a.click();
-document.body.removeChild(a);
-
+        // Trigger download for this month's CSV
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `${platform}_journal_${month}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
-}
 
+    alert(`Journal exported to ${platform} successfully!`);
+}
 
 
 
@@ -446,12 +454,31 @@ function downloadSample(){
     const ws = XLSX.utils.json_to_sheet(sampleData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Sample");
-    XLSX.writeFile(wb, "SamplePettyCash.xlsx");
+    XLSX.writeFile(wb, "SampleData.xlsx");
 }
+
+// Your new feature
+function myNewFeature() {
+    // Add your custom code here
+    console.log("My new feature is running!");
+}
+
+// Tab switching
+function openTab(tabName) {
+    const tabs = document.getElementsByClassName('tabcontent');
+    for(let i=0;i<tabs.length;i++) tabs[i].style.display='none';
+    document.getElementById(tabName).style.display='block';
+}
+
+// Initialize first tab
+openTab('journalTab');
+
+
 </script>
 
 </body>
 </html>
+
 
 
 
