@@ -243,7 +243,7 @@ function formatDate(excelDate) {
     }
 
     // Text date parsing (DD/MM/YYYY or YYYY-MM-DD)
-    const parts = excelDate.split(/[-\/]/);
+   const parts = excelDate.toString().split(/[-\/]/);
     if (parts.length === 3) {
         let day, month, year;
         if (parts[0].length === 4) { // YYYY-MM-DD
@@ -400,36 +400,42 @@ function downloadLedger(){
         let csvContent = "";
         const rows = monthlyData[month];
 
-        if (platform === "zoho") {
-            csvContent += "Date,Account,Description,Debit,Credit\n";
-            rows.forEach(row => {
-                csvContent += `${row.Date},${row.Account},${row.Description},${row.Debit || 0},${row.Credit || 0}\n`;
-            });
-        } 
-        else if (platform === "quickbooks") {
-            csvContent += "Date,Account,Debit,Credit,Memo\n";
-            rows.forEach(row => {
-                csvContent += `${row.Date},${row.Account},${row.Debit || 0},${row.Credit || 0},${row.Description}\n`;
-            });
-        } 
-        else if (platform === "sage") {
-            csvContent += "JournalDate,AccountName,Debit,Credit,Narrative\n";
-            rows.forEach(row => {
-                csvContent += `${row.Date},${row.Account},${row.Debit || 0},${row.Credit || 0},${row.Description}\n`;
-            });
-        } 
+        if(platform === "zoho"){
+    csvContent += "Date,Account,Description,Debit,Credit\n";
+    rows.forEach(r => {
+        csvContent += `${r.Date},${r.Account},${r.Description},${r.Debit || 0},${r.Credit || 0}\n`;
+    });
+}
+else if(platform === "quickbooks"){
+    csvContent += "TxnDate,Account,Debit,Credit,Memo\n";
+    rows.forEach(r => {
+        csvContent += `${r.Date},${r.Account},${r.Debit || 0},${r.Credit || 0},${r.Description}\n`;
+    });
+}
+else if(platform === "xero"){
+    csvContent += "Date,Account,Description,Amount,Type\n";
+    rows.forEach(r => {
+        const type = r.Debit > 0 ? "Debit" : "Credit";
+        const amount = r.Debit > 0 ? r.Debit : r.Credit;
+        csvContent += `${r.Date},${r.Account},${r.Description},${amount},${type}\n`;
+    });
+}
+
         else {
             alert("Unknown platform!");
             return;
         }
 
         // Trigger download for each month
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `${platform}_journal_${month}.csv`;
-        link.click();
-        URL.revokeObjectURL(link.href);
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+const url = URL.createObjectURL(blob);
+const a = document.createElement("a");
+a.href = url;
+a.download = `${platform}_journal_${month}.csv`;
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+
     }
 }
 
@@ -446,6 +452,7 @@ function downloadSample(){
 
 </body>
 </html>
+
 
 
 
