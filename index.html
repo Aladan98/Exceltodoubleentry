@@ -388,40 +388,51 @@ function downloadLedger(){
     const platform = document.getElementById("platformSelect").value;
     if (!platform) { alert("Select a platform!"); return; }
 
-    let csvContent = "";
+    // Group entries by month
+    const monthlyData = {};
+    journal.forEach(row => {
+        const month = row.Date.slice(0,7); // YYYY-MM
+        if (!monthlyData[month]) monthlyData[month] = [];
+        monthlyData[month].push(row);
+    });
 
-    if (platform === "zoho") {
-        csvContent += "Date,Account,Description,Debit,Credit\n";
-        journal.forEach(row => {
-            csvContent += `${row.Date},${row.Account},${row.Description},${row.Debit || 0},${row.Credit || 0}\n`;
-        });
-    } 
-    else if (platform === "quickbooks") {
-        csvContent += "Date,Account,Debit,Credit,Memo\n";
-        journal.forEach(row => {
-            csvContent += `${row.Date},${row.Account},${row.Debit || 0},${row.Credit || 0},${row.Description}\n`;
-        });
-    } 
-    else if (platform === "xero") {
-        csvContent += "Date,Account,Description,Amount,TaxType,TrackingCategory1,TrackingCategory2\n";
-        journal.forEach(row => {
-            let amount = (row.Debit || 0) - (row.Credit || 0);
-            csvContent += `${row.Date},${row.Account},${row.Description},${amount},NONE,,\n`;
-        });
-    } 
-    else {
-        alert("Unknown platform!");
-        return;
+    for (const month in monthlyData) {
+        let csvContent = "";
+        const rows = monthlyData[month];
+
+        if (platform === "zoho") {
+            csvContent += "Date,Account,Description,Debit,Credit\n";
+            rows.forEach(row => {
+                csvContent += `${row.Date},${row.Account},${row.Description},${row.Debit || 0},${row.Credit || 0}\n`;
+            });
+        } 
+        else if (platform === "quickbooks") {
+            csvContent += "Date,Account,Debit,Credit,Memo\n";
+            rows.forEach(row => {
+                csvContent += `${row.Date},${row.Account},${row.Debit || 0},${row.Credit || 0},${row.Description}\n`;
+            });
+        } 
+        else if (platform === "sage") {
+            csvContent += "JournalDate,AccountName,Debit,Credit,Narrative\n";
+            rows.forEach(row => {
+                csvContent += `${row.Date},${row.Account},${row.Debit || 0},${row.Credit || 0},${row.Description}\n`;
+            });
+        } 
+        else {
+            alert("Unknown platform!");
+            return;
+        }
+
+        // Trigger download for each month
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `${platform}_journal_${month}.csv`;
+        link.click();
+        URL.revokeObjectURL(link.href);
     }
-
-    // Trigger download
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `${platform}_journal_export.csv`;
-    link.click();
-    URL.revokeObjectURL(link.href);
 }
+
 
 
 
@@ -435,6 +446,7 @@ function downloadSample(){
 
 </body>
 </html>
+
 
 
 
