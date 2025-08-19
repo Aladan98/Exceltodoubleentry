@@ -127,29 +127,33 @@ tr:hover {
     <option value="xero">Xero</option>
 </select>
 <button onclick="exportPlatform()">Export CSV</button>
-
-<div class="tabs">
-  <button class="tablink" onclick="openTab('journalTab')">Journal</button>
-  <button class="tablink" onclick="openTab('ledgerTab')">Ledger</button>
 </div>
 
-<div id="journalTab" class="tabcontent">
-  <h2>Journal</h2>
-  <div class="scrollable">
-      <table id="journalTable">
+<div class="content">
+    <div class="tabs">
+      <button class="tablink" onclick="openTab('journalTab')">Journal</button>
+      <button class="tablink" onclick="openTab('ledgerTab')">Ledger</button>
+    </div>
+
+    <div id="journalTab" class="tabcontent">
+      <h2>Journal</h2>
+      <div class="scrollable">
+        <table id="journalTable">
           <tr><th>Date</th><th>Account</th><th>Debit</th><th>Credit</th><th>Description</th></tr>
-      </table>
-  </div>
-</div>
+        </table>
+      </div>
+    </div>
 
-<div id="ledgerTab" class="tabcontent">
-  <h2>Ledger</h2>
-  <div class="scrollable">
-      <table id="ledgerTable">
+    <div id="ledgerTab" class="tabcontent">
+      <h2>Ledger</h2>
+      <div class="scrollable">
+        <table id="ledgerTable">
           <tr><th>Account</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
-      </table>
+        </table>
+      </div>
+    </div>
   </div>
-</div>
+</main>
 
 
 <script>
@@ -456,28 +460,63 @@ function downloadSample(){
     XLSX.utils.book_append_sheet(wb, ws, "Sample");
     XLSX.writeFile(wb, "SampleData.xlsx");
 }
+    // Group entries by month
+    const monthlyData = {};
+    journal.forEach(row => {
+        const month = row.Date.slice(0, 7); // YYYY-MM
+        if (!monthlyData[month]) monthlyData[month] = [];
+        monthlyData[month].push(row);
+    });
 
-// Your new feature
-function myNewFeature() {
-    // Add your custom code here
-    console.log("My new feature is running!");
+    // Prepare CSV
+    let csvContent = "";
+    if (platform === "zoho") {
+        csvContent += "Date,Account Name,Debit,Credit,Description\n";
+        journal.forEach(row => {
+            csvContent += `${row.Date},${row.Account},${row.Debit || 0},${row.Credit || 0},${row.Description}\n`;
+        });
+    } else if (platform === "quickbooks") {
+        csvContent += "Date,Account,Debit,Credit,Description\n";
+        journal.forEach(row => {
+            csvContent += `${row.Date},${row.Account},${row.Debit || 0},${row.Credit || 0},${row.Description}\n`;
+        });
+    } else if (platform === "xero") {
+        csvContent += "Date,Account,Description,Amount\n";
+        journal.forEach(row => {
+            const amount = row.Debit ? row.Debit : -row.Credit;
+            csvContent += `${row.Date},${row.Account},${row.Description},${amount}\n`;
+        });
+    }
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${platform}_journal.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    alert(`Journal exported for ${platform}!`);
 }
 
 // Tab switching
-function openTab(tabName) {
-    const tabs = document.getElementsByClassName('tabcontent');
-    for(let i=0;i<tabs.length;i++) tabs[i].style.display='none';
-    document.getElementById(tabName).style.display='block';
+function openTab(tabId){
+    const tabs = document.getElementsByClassName("tabcontent");
+    for(const tab of tabs) tab.style.display = "none";
+    document.getElementById(tabId).style.display = "block";
 }
 
-// Initialize first tab
+// Initialize default tab
 openTab('journalTab');
+
 
 
 </script>
 
 </body>
 </html>
+
 
 
 
