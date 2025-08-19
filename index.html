@@ -285,17 +285,6 @@ function validateSheet(data) {
     return true;
 }
 
-
-
-function validateSheet(data){
-    const required = ["Date","Description","Type","Amount"];
-    for(const row of data){
-        for(const key of required){
-            if(!(key in row) || row[key]==="") return false;
-        }
-    }
-    return true;
-}
 let sheetData = []; // Global store for loaded sheet
 let journal = [];   // Global store for generated journal
 
@@ -435,20 +424,31 @@ function downloadJournal(){
 }
 
 function downloadLedger(){
-    if(Object.keys(ledger).length===0){ alert("Generate ledger first!"); return; }
-    let allEntries = [];
+    if(Object.keys(ledger).length === 0){
+        alert("Generate ledger first!");
+        return;
+    }
+    const ledgerArray = [];
     for(const acc in ledger){
-        let balance=0;
+        let balance = 0;
         ledger[acc].forEach(entry => {
             balance += (entry.Debit || 0) - (entry.Credit || 0);
-            allEntries.push({...entry, Balance:balance, Account:acc});
+            ledgerArray.push({
+                Account: acc,
+                Date: entry.Date,
+                Description: entry.Description,
+                Debit: entry.Debit || 0,
+                Credit: entry.Credit || 0,
+                Balance: balance
+            });
         });
     }
-    const ws = XLSX.utils.json_to_sheet(allEntries);
+    const ws = XLSX.utils.json_to_sheet(ledgerArray);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Ledger");
     XLSX.writeFile(wb, "Ledger.xlsx");
 }
+
 
 function exportPlatform() {
     if (!journal || journal.length === 0) {
@@ -594,6 +594,7 @@ openTab('journalTab');
 
 </body>
 </html>
+
 
 
 
