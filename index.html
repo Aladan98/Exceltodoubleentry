@@ -460,45 +460,44 @@ function downloadSample(){
     XLSX.utils.book_append_sheet(wb, ws, "Sample");
     XLSX.writeFile(wb, "SampleData.xlsx");
 }
-    // Group entries by month
+      // Group entries by month
     const monthlyData = {};
-    journal.forEach(row => {
-        const month = row.Date.slice(0, 7); // YYYY-MM
+    journal.forEach(entry => {
+        const month = entry.Date.slice(0, 7); // YYYY-MM
         if (!monthlyData[month]) monthlyData[month] = [];
-        monthlyData[month].push(row);
+        monthlyData[month].push(entry);
     });
 
-    // Prepare CSV
-    let csvContent = "";
-    if (platform === "zoho") {
-        csvContent += "Date,Account Name,Debit,Credit,Description\n";
-        journal.forEach(row => {
-            csvContent += `${row.Date},${row.Account},${row.Debit || 0},${row.Credit || 0},${row.Description}\n`;
+    for (const month in monthlyData) {
+        let csvContent = "Account,Date,Description,Debit,Credit\n";
+        monthlyData[month].forEach(entry => {
+            let debit = entry.Debit || 0;
+            let credit = entry.Credit || 0;
+            switch(platform){
+                case "zoho":
+                    csvContent += `${entry.Account},${entry.Date},${entry.Description},${debit},${credit}\n`;
+                    break;
+                case "quickbooks":
+                    // QuickBooks might use slightly different headers
+                    csvContent += `${entry.Date},${entry.Account},${entry.Description},${debit},${credit}\n`;
+                    break;
+                case "xero":
+                    // Xero format: Date,Account,Description,Quantity,Unit Amount,Credit
+                    csvContent += `${entry.Date},${entry.Account},${entry.Description},1,${debit || credit},${credit}\n`;
+                    break;
+            }
         });
-    } else if (platform === "quickbooks") {
-        csvContent += "Date,Account,Debit,Credit,Description\n";
-        journal.forEach(row => {
-            csvContent += `${row.Date},${row.Account},${row.Debit || 0},${row.Credit || 0},${row.Description}\n`;
-        });
-    } else if (platform === "xero") {
-        csvContent += "Date,Account,Description,Amount\n";
-        journal.forEach(row => {
-            const amount = row.Debit ? row.Debit : -row.Credit;
-            csvContent += `${row.Date},${row.Account},${row.Description},${amount}\n`;
-        });
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `${platform}_journal_${month}.csv`;
+        link.click();
     }
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `${platform}_journal.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    alert(`Journal exported for ${platform}!`);
+    alert(`Exported journal to ${platform.toUpperCase()} format!`);
 }
+
 
 // Tab switching
 function openTab(tabId){
@@ -516,6 +515,7 @@ openTab('journalTab');
 
 </body>
 </html>
+
 
 
 
