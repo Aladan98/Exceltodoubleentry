@@ -406,50 +406,64 @@ function exportPlatform() {
         return; 
     }
 
-    // Group entries by month
-    const monthlyData = {};
-    journal.forEach(row => {
-        const month = row.Date.slice(0,7); // YYYY-MM
-        if (!monthlyData[month]) monthlyData[month] = [];
-        monthlyData[month].push(row);
-    });
+    let exportData = [];
 
-    for (const month in monthlyData) {
-        let csvContent = "";
-        const rows = monthlyData[month];
+   if (platform === "zoho") {
+    exportData = journal.map(entry => ({
+        "Date": entry.Date,
+        "Account Name": entry.Account,
+        "Debit": entry.Debit,
+        "Credit": entry.Credit,
+        "Description": entry.Description
+    }));
+} else if (platform === "quickbooks") {
+    exportData = journal.map(entry => ({
+        "TxnDate": entry.Date,
+        "Account": entry.Account,
+        "Debit": entry.Debit,
+        "Credit": entry.Credit,
+        "Memo": entry.Description
+    }));
+} else if (platform === "xero") {
+    exportData = journal.map(entry => ({
+        "Date": entry.Date,
+        "AccountCode": entry.Account,
+        "Debit": entry.Debit,
+        "Credit": entry.Credit,
+        "Narration": entry.Description
+    }));
+}
 
-        if(platform === "zoho"){
-            csvContent += "Date,Account,Description,Debit,Credit\n";
-            rows.forEach(r => {
-                csvContent += `${r.Date},${r.Account},${r.Description},${r.Debit || ''},${r.Credit || ''}\n`;
-            });
-        } else if(platform === "quickbooks"){
-            csvContent += "Date,Account,Debit,Credit,Memo\n";
-            rows.forEach(r => {
-                csvContent += `${r.Date},${r.Account},${r.Debit || ''},${r.Credit || ''},${r.Description}\n`;
-            });
-        } else if(platform === "xero"){
-            csvContent += "Date,Account,Description,Amount\n";
-            rows.forEach(r => {
-                const amount = (r.Debit || 0) - (r.Credit || 0);
-                csvContent += `${r.Date},${r.Account},${r.Description},${amount}\n`;
-            });
-        } else {
-            alert("Unknown platform!");
-            return;
+// Convert to CSV
+function convertToCSV(objArray) {
+    const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
+    let str = '';
+    const headers = Object.keys(array[0]).join(',');
+    str += headers + '\r\n';
+
+    array.forEach(item => {
+        let line = [];
+        for (let key in item) {
+            let val = item[key] != null ? item[key] : '';
+            val = `"${val.toString().replace(/"/g, '""')}"`; // Escape quotes
+            line.push(val);
         }
+        str += line.join(',') + '\r\n';
+    });
+    return str;
+}
 
-        // Trigger download for this month's CSV
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `${platform}_journal_${month}.csv`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
+// Trigger download
+const csv = convertToCSV(exportData);
+const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+const link = document.createElement("a");
+link.href = URL.createObjectURL(blob);
+link.setAttribute('download', `${platform}_Export.csv`);
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
 
-    alert(`Journal exported to ${platform} successfully!`);
+alert(`Journal exported for ${platform}!`);
 }
 
 
@@ -498,6 +512,15 @@ function downloadSample(){
     alert(`Exported journal to ${platform.toUpperCase()} format!`);
 }
 
+ function openTab(tabId) {
+    const tabs = document.querySelectorAll('.tabcontent');
+    tabs.forEach(tab => tab.style.display = 'none');
+    document.getElementById(tabId).style.display = 'block';
+}
+
+// Set default tab
+openTab('journalTab');
+   
 
 // Tab switching
 function openTab(tabId){
@@ -515,6 +538,7 @@ openTab('journalTab');
 
 </body>
 </html>
+
 
 
 
