@@ -151,7 +151,7 @@ tr:hover {
       <option value="">Select Platform</option>
       <option value="zoho">Zoho Books</option>
       <option value="quickbooks">QuickBooks</option>
-      <option value="xero">Xero</option>
+      <option value="sage">Sage</option>
     </select>
     <button onclick="exportPlatform()">Export CSV</button>
   </div>
@@ -397,7 +397,10 @@ function displayLedger(){
 }
 
 function downloadJournal(){
-    if(journal.length===0){ alert("Generate journal first!"); return; }
+    if(journal.length===0){ 
+        alert("Generate journal first!"); 
+        return; 
+    }
     const ws = XLSX.utils.json_to_sheet(journal);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Journal");
@@ -405,63 +408,116 @@ function downloadJournal(){
 }
 
 function downloadLedger(){
-    if(Object.keys(ledger).length===0){ alert("Generate ledger first!"); return; }
-    let allEntries = [];
+    if(Object.keys(ledger).length === 0){
+        alert("Generate ledger first!");
+        return;
+    }
+
+    // Group ledger entries by year-month
+    const monthlyLedger = {};
+
     for(const acc in ledger){
-        let balance=0;
+        let balance = 0;
         ledger[acc].forEach(entry => {
+            const dateObj = new Date(entry.Date);
+            const ym = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2,'0')}`;
+
+            if(!monthlyLedger[ym]) monthlyLedger[ym] = [];
+
             balance += (entry.Debit || 0) - (entry.Credit || 0);
-            allEntries.push({...entry, Balance:balance, Account:acc});
+
+            monthlyLedger[ym].push({
+                Account: acc,
+                Date: entry.Date,
+                Description: entry.Description,
+                Debit: entry.Debit || 0,
+                Credit: entry.Credit || 0,
+                Balance: balance
+            });
         });
     }
-    const ws = XLSX.utils.json_to_sheet(allEntries);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Ledger");
-    XLSX.writeFile(wb, "Ledger.xlsx");
+
+    // Create one file per month
+    for(const month in monthlyLedger){
+        const ws = XLSX.utils.json_to_sheet(monthlyLedger[month]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Ledger");
+        XLSX.writeFile(wb, `Ledger_${month}.xlsx`);
+    }
+
+    alert("Ledger exported as monthly files!");
 }
 
-    function exportPlatform() {
+function exportPlatform() {
     if (!journal || journal.length === 0) {
         alert("No journal data to export!");
         return;
     }
 
     const platform = document.getElementById("platformSelect").value;
-    if (!platform) { alert("Select a platform!"); return; }
+    if (!platform) { 
+        alert("Select a platform!"); 
+        return; 
+    }
 
-    let csvContent = "";
+    let exportData = [];
 
     if (platform === "zoho") {
-        csvContent += "Date,Account,Description,Debit,Credit\n";
-        journal.forEach(row => {
-            csvContent += `${row.Date},${row.Account},${row.Description},${row.Debit || 0},${row.Credit || 0}\n`;
+        exportData = journal.map(entry => ({
+            "Date": entry.Date,
+            "Account Name": entry.Account,
+            "Debit": entry.Debit,
+            "Credit": entry.Credit,
+            "Description": entry.Description
+        }));
+    } else if (platform === "quickbooks") {
+        exportData = journal.map(entry => ({
+            "TxnDate": entry.Date,
+            "Account": entry.Account,
+            "Debit": entry.Debit,
+            "Credit": entry.Credit,
+            "Memo": entry.Description
+        }));
+    } else if (platform === "sage") {  // Changed from Xero to Sage
+        exportData = journal.map(entry => ({
+            "Date": entry.Date,
+            "NominalCode": entry.Account,   // Sage uses Nominal code
+            "Description": entry.Description,
+            "DebitAmount": entry.Debit || 0,
+            "CreditAmount": entry.Credit || 0
+        }));
+    }
+
+    // Convert to CSV
+    function convertToCSV(objArray) {
+        const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
+        let str = '';
+        const headers = Object.keys(array[0]).join(',');
+        str += headers + '\r\n';
+
+        array.forEach(item => {
+            let line = [];
+            for (let key in item) {
+                let val = item[key] != null ? item[key] : '';
+                val = `"${val.toString().replace(/"/g, '""')}"`; // Escape quotes
+                line.push(val);
+            }
+            str += line.join(',') + '\r\n';
         });
-    } 
-    else if (platform === "quickbooks") {
-        csvContent += "Date,Account,Debit,Credit,Memo\n";
-        journal.forEach(row => {
-            csvContent += `${row.Date},${row.Account},${row.Debit || 0},${row.Credit || 0},${row.Description}\n`;
-        });
-    } 
-    else if (platform === "xero") {
-        csvContent += "Date,Account,Description,Amount,TaxType,TrackingCategory1,TrackingCategory2\n";
-        journal.forEach(row => {
-            let amount = (row.Debit || 0) - (row.Credit || 0);
-            csvContent += `${row.Date},${row.Account},${row.Description},${amount},NONE,,\n`;
-        });
-    } 
-    else {
-        alert("Unknown platform!");
-        return;
+        return str;
     }
 
     // Trigger download
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const csv = convertToCSV(exportData);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `${platform}_journal_export.csv`;
+    link.setAttribute('download', `${platform}_Export.csv`);
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(link.href);
+    document.body.removeChild(link);
+
+    alert(`Journal exported for ${platform}!`);
 }
 
 
@@ -496,6 +552,7 @@ function openTab(evt, tabName) {
 
 </body>
 </html>
+
 
 
 
