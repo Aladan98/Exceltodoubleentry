@@ -102,13 +102,40 @@ tr:hover {
     main { flex-direction: column; }
     .sidebar { width: 100%; }
 }
+
+    .tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+.tabButton {
+  padding: 10px 20px;
+  background: #1a1a1a;
+  color: #e0e0e0;
+  border: none;
+  border-radius: 5px 5px 0 0;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+.tabButton.active {
+  background: #00e676;
+  color: #121212;
+}
+.tabButton:hover {
+  background: #00c853;
+}
+.tabContent {
+  display: none;
+}
+
 </style>
 </head>
 <body>
 
 <header>LEDGIOX</header>
 <main>
-<div class="sidebar">
+  <div class="sidebar">
     <label for="counterAccount">Counter Account</label>
     <input type="text" id="counterAccount" placeholder="Counter Account e.g. Bank">
     <label for="fileInput">Upload Excel/CSV</label>
@@ -120,39 +147,53 @@ tr:hover {
     <button onclick="downloadLedger()">Download Ledger</button>
     <button onclick="downloadSample()">Download Sample Excel</button>
     <label for="platformSelect">Export to Platform</label>
-<select id="platformSelect">
-    <option value="">Select Platform</option>
-    <option value="zoho">Zoho Books</option>
-    <option value="quickbooks">QuickBooks</option>
-    <option value="xero">Xero</option>
-</select>
-<button onclick="exportPlatform()">Export CSV</button>
+    <select id="platformSelect">
+      <option value="">Select Platform</option>
+      <option value="zoho">Zoho Books</option>
+      <option value="quickbooks">QuickBooks</option>
+      <option value="xero">Xero</option>
+    </select>
+    <button onclick="exportPlatform()">Export CSV</button>
+  </div>
 
-</div>
+  <div class="content">
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tabButton active" onclick="openTab(event, 'sampleTab')">Sample Excel</button>
+      <button class="tabButton" onclick="openTab(event, 'journalTab')">Journal Entries</button>
+      <button class="tabButton" onclick="openTab(event, 'ledgerTab')">General Ledger</button>
+    </div>
 
-<div class="content">
+    <!-- Tab Contents -->
+    <div id="sampleTab" class="tabContent" style="display:block">
       <h2>Sample Excel Preview</h2>
-    <div class="scrollable">
+      <div class="scrollable">
         <table id="sampleTable">
-            <tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Account</th></tr>
+          <tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Account</th></tr>
         </table>
+      </div>
     </div>
 
-    <h2>Journal Entries</h2>
-    <div class="scrollable">
+    <div id="journalTab" class="tabContent">
+      <h2>Journal Entries</h2>
+      <div class="scrollable">
         <table id="journalTable">
-            <tr><th>Date</th><th>Account</th><th>Debit</th><th>Credit</th><th>Description</th></tr>
+          <tr><th>Date</th><th>Account</th><th>Debit</th><th>Credit</th><th>Description</th></tr>
         </table>
+      </div>
     </div>
 
-    <h2>General Ledger</h2>
-    <div class="scrollable">
+    <div id="ledgerTab" class="tabContent">
+      <h2>General Ledger</h2>
+      <div class="scrollable">
         <table id="ledgerTable">
-            <tr><th>Account</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
+          <tr><th>Account</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
         </table>
+      </div>
     </div>
-</div>
+  </div>
 </main>
+
 
 <script>
 let sheetData = [];
@@ -431,10 +472,31 @@ function downloadSample(){
     XLSX.utils.book_append_sheet(wb, ws, "Sample");
     XLSX.writeFile(wb, "SamplePettyCash.xlsx");
 }
+
+
+function openTab(evt, tabName) {
+  // Hide all tab contents
+  const tabContents = document.getElementsByClassName("tabContent");
+  for (let i = 0; i < tabContents.length; i++) {
+    tabContents[i].style.display = "none";
+  }
+
+  // Remove "active" class from all buttons
+  const tabButtons = document.getElementsByClassName("tabButton");
+  for (let i = 0; i < tabButtons.length; i++) {
+    tabButtons[i].classList.remove("active");
+  }
+
+  // Show the selected tab and set button active
+  document.getElementById(tabName).style.display = "block";
+  evt.currentTarget.classList.add("active");
+}
 </script>
+
 
 </body>
 </html>
+
 
 
 
