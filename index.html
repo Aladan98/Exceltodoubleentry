@@ -220,33 +220,72 @@ const sampleData = [
   {Date:"2025-08-18", Description:"Loan Repayment", Type:"Payment", Amount:500, Account:"Liabilities"}
 ];
 
+// Define account codes for categories
+const accountCodes = {
+    Asset: { min: 1000, max: 1999 },
+    Expense: { min: 2000, max: 3999 },
+    Liabilities: { min: 4000, max: 4999 },
+    Income: { min: 5000, max: 5999 },
+    Capital: { min: 6000, max: 6999 },
+};
+
+// Map each account to a code
+const accountMapping = {
+    "Stationery": 2001,
+    "Staff Food": 2002,
+    "Legal": 2003,
+    "Printing": 2004,
+    "Car Fix": 2005,
+    "Assets": 1001,
+    "Sales": 5001,
+    "Sales Returns": 2006,
+    "Discount Received": 5002,
+    "Misc": 2007,
+    "Capital": 6001,
+    "Drawings": 2008,
+    "Income": 5003,
+    "Liabilities": 4001
+};
+
+// Determine account category by code
+function getAccountTypeByCode(code) {
+    for (const [type, range] of Object.entries(accountCodes)) {
+        if (code >= range.min && code <= range.max) {
+            return type;
+        }
+    }
+    return "Unknown";
+}
+
 function populateSample() {
     const table = document.getElementById('sampleTable');
-    table.innerHTML = '<tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Account</th></tr>';
+    table.innerHTML = `<tr>
+        <th>Date</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Account</th>
+        <th>Code</th>
+        <th>Category</th>
+    </tr>`;
+
     sampleData.forEach(row => {
+        const code = accountMapping[row.Account] || 0;
+        const category = getAccountTypeByCode(code);
+
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${row.Date}</td><td>${row.Description}</td><td>${row.Type}</td><td>${row.Amount}</td><td>${row.Account}</td>`;
+        tr.innerHTML = `<td>${row.Date}</td>
+                        <td>${row.Description}</td>
+                        <td>${row.Type}</td>
+                        <td>${row.Amount}</td>
+                        <td>${row.Account}</td>
+                        <td>${code}</td>
+                        <td>${category}</td>`;
         table.appendChild(tr);
     });
 }
-populateSample();
 
-const accountKeywords = {
-    "Staff Food": { keywords: ["food","lunch","snack","canteen","meal","dinner","breakfast"], weight: 1 },
-    "Legal": { keywords: ["law","legal","attorney","consultation","fee","court","counsel"], weight: 1 },
-    "Stationery": { keywords: ["stationery","pen","paper","notebook","office supply","envelope","printer paper"], weight: 1 },
-    "Printing": { keywords: ["print","brochure","flyer","poster","printing","banner"], weight: 1 },
-    "Car Fix": { keywords: ["car","fuel","repair","garage","petrol","diesel","service","maintenance"], weight: 1 },
-    "Assets": { keywords: ["asset","computer","printer","equipment","furniture","purchase","sale","machine","device"], weight: 1 },
-    "Sales": { keywords: ["sale","income","revenue","product sale","sold"], weight: 1 },
-    "Sales Returns": { keywords: ["returned","return","refund","damage","delivered","reject"], weight: 1 },
-    "Discount Received": { keywords: ["discount","rebate","reduction"], weight: 1 },
-    "Misc": { keywords: [], weight: 1 },
-    "Capital": { keywords: ["capital","owner contribution","equity","investment"], weight: 1 },
-    "Drawings": { keywords: ["drawing","owner withdrawal","owner draw"], weight: 1 },
-    "Liabilities": { keywords: ["loan","debt","creditor","payable","borrowed"], weight: 1 },
-    "Income": { keywords: ["interest","income","dividend","earning","profit","revenue"], weight: 1 }
-};
+
 
 function detectAccount(description) {
     if (!description) return "Misc";
@@ -330,11 +369,29 @@ function loadExcel() {
 
 function displaySheet(data){
     const table = document.getElementById('sampleTable');
-    table.innerHTML = '<tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Account</th></tr>';
+    table.innerHTML = `<tr>
+        <th>Date</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Account</th>
+        <th>Code</th>
+        <th>Category</th>
+    </tr>`;
+
     data.forEach(row => {
         const account = detectAccount(row.Description);
+        const code = accountMapping[account] || 0;
+        const category = getAccountTypeByCode(code);
+
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${formatDate(row.Date)}</td><td>${row.Description}</td><td>${row.Type}</td><td>${row.Amount}</td><td>${account}</td>`;
+        tr.innerHTML = `<td>${formatDate(row.Date)}</td>
+                        <td>${row.Description}</td>
+                        <td>${row.Type}</td>
+                        <td>${row.Amount}</td>
+                        <td>${account}</td>
+                        <td>${code}</td>
+                        <td>${category}</td>`;
         table.appendChild(tr);
     });
 }
@@ -344,16 +401,20 @@ function generateJournal(){
     journal = [];
     ledger = {};
     const counterAccount = document.getElementById('counterAccount').value || "Cash";
+
     sheetData.forEach(row => {
         const acc = detectAccount(row.Description);
+        const code = accountMapping[acc] || 0;
+        const category = getAccountTypeByCode(code);
         const amount = parseFloat(row.Amount);
         const date = formatDate(row.Date);
+
         if(row.Type.toLowerCase()==="payment"){
-            journal.push({Date:date,Account:acc,Debit:amount,Credit:0,Description:row.Description});
-            journal.push({Date:date,Account:counterAccount,Debit:0,Credit:amount,Description:row.Description});
+            journal.push({Date:date,Account:acc,Code:code,Category:category,Debit:amount,Credit:0,Description:row.Description});
+            journal.push({Date:date,Account:counterAccount,Code:0,Category:"Cash",Debit:0,Credit:amount,Description:row.Description});
         } else {
-            journal.push({Date:date,Account:counterAccount,Debit:amount,Credit:0,Description:row.Description});
-            journal.push({Date:date,Account:acc,Debit:0,Credit:amount,Description:row.Description});
+            journal.push({Date:date,Account:counterAccount,Code:0,Category:"Cash",Debit:amount,Credit:0,Description:row.Description});
+            journal.push({Date:date,Account:acc,Code:code,Category:category,Debit:0,Credit:amount,Description:row.Description});
         }
     });
     displayJournal();
@@ -362,13 +423,21 @@ function generateJournal(){
 
 function displayJournal(){
     const table = document.getElementById('journalTable');
-    table.innerHTML = '<tr><th>Date</th><th>Account</th><th>Debit</th><th>Credit</th><th>Description</th></tr>';
+    table.innerHTML = '<tr><th>Date</th><th>Account</th><th>Code</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th></tr>';
+    
     journal.forEach(entry => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${entry.Date}</td><td>${entry.Account}</td><td class="debit">${entry.Debit || ''}</td><td class="credit">${entry.Credit || ''}</td><td>${entry.Description}</td>`;
+        tr.innerHTML = `<td>${entry.Date}</td>
+                        <td>${entry.Account}</td>
+                        <td>${entry.Code}</td>
+                        <td>${entry.Category}</td>
+                        <td class="debit">${entry.Debit || ''}</td>
+                        <td class="credit">${entry.Credit || ''}</td>
+                        <td>${entry.Description}</td>`;
         table.appendChild(tr);
     });
 }
+
 
 function generateLedger(){
     if(journal.length===0){ alert("Generate journal first!"); return; }
@@ -383,7 +452,7 @@ function generateLedger(){
 
 function displayLedger(){
     const table = document.getElementById('ledgerTable');
-    table.innerHTML = '<tr><th>Account</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>';
+    table.innerHTML = '<tr><th>Account</th><th>Code</th><th>Category</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>';
     
     for(const acc in ledger){
         let balance = 0;
@@ -391,7 +460,9 @@ function displayLedger(){
             balance += (entry.Debit || 0) - (entry.Credit || 0);
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${acc}</td>
+                <td>${entry.Account}</td>
+                <td>${entry.Code || ''}</td>
+                <td>${entry.Category || ''}</td>
                 <td>${entry.Date}</td>
                 <td>${entry.Description}</td>
                 <td class="debit">${(entry.Debit||0).toFixed(2)}</td>
@@ -403,16 +474,29 @@ function displayLedger(){
 }
 
 
+
 function downloadJournal(){
     if(journal.length===0){ 
         alert("Generate journal first!"); 
         return; 
     }
-    const ws = XLSX.utils.json_to_sheet(journal);
+    // Include Code and Category
+    const exportData = journal.map(entry => ({
+        Date: entry.Date,
+        Account: entry.Account,
+        Code: entry.Code || '',
+        Category: entry.Category || '',
+        Debit: entry.Debit,
+        Credit: entry.Credit,
+        Description: entry.Description
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Journal");
     XLSX.writeFile(wb, "Journal.xlsx");
 }
+
 
 function downloadLedger(){
     if(Object.keys(ledger).length === 0){
@@ -435,6 +519,8 @@ function downloadLedger(){
 
             monthlyLedger[ym].push({
                 Account: acc,
+                Code: entry.Code || '',
+                Category: entry.Category || '',
                 Date: entry.Date,
                 Description: entry.Description,
                 Debit: entry.Debit || 0,
@@ -444,7 +530,7 @@ function downloadLedger(){
         });
     }
 
-    // Create one file per month
+    // Export one file per month
     for(const month in monthlyLedger){
         const ws = XLSX.utils.json_to_sheet(monthlyLedger[month]);
         const wb = XLSX.utils.book_new();
@@ -454,6 +540,7 @@ function downloadLedger(){
 
     alert("Ledger exported as monthly files!");
 }
+
 
 function exportPlatform() {
     if (!journal || journal.length === 0) {
@@ -473,6 +560,8 @@ function exportPlatform() {
         exportData = journal.map(entry => ({
             "Date": entry.Date,
             "Account Name": entry.Account,
+            "Code": entry.Code || '',
+            "Category": entry.Category || '',
             "Debit": entry.Debit,
             "Credit": entry.Credit,
             "Description": entry.Description
@@ -481,14 +570,17 @@ function exportPlatform() {
         exportData = journal.map(entry => ({
             "TxnDate": entry.Date,
             "Account": entry.Account,
+            "Code": entry.Code || '',
+            "Category": entry.Category || '',
             "Debit": entry.Debit,
             "Credit": entry.Credit,
             "Memo": entry.Description
         }));
-    } else if (platform === "sage") {  // Changed from Xero to Sage
+    } else if (platform === "sage") {
         exportData = journal.map(entry => ({
             "Date": entry.Date,
-            "NominalCode": entry.Account,   // Sage uses Nominal code
+            "NominalCode": entry.Code || '',
+            "Category": entry.Category || '',
             "Description": entry.Description,
             "DebitAmount": entry.Debit || 0,
             "CreditAmount": entry.Credit || 0
@@ -506,7 +598,7 @@ function exportPlatform() {
             let line = [];
             for (let key in item) {
                 let val = item[key] != null ? item[key] : '';
-                val = `"${val.toString().replace(/"/g, '""')}"`; // Escape quotes
+                val = `"${val.toString().replace(/"/g, '""')}"`;
                 line.push(val);
             }
             str += line.join(',') + '\r\n';
@@ -526,6 +618,7 @@ function exportPlatform() {
 
     alert(`Journal exported for ${platform}!`);
 }
+
 
 
 
@@ -559,6 +652,7 @@ function openTab(evt, tabName) {
 
 </body>
 </html>
+
 
 
 
