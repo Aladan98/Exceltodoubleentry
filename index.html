@@ -165,37 +165,26 @@ tr:hover {
 
 <div id="sampleTab" class="tabContent">
   <table id="sampleTable">
-    <tr>
-      <th>Date</th>
-      <th>Description</th>
-      <th>Type</th>
-      <th>Amount</th>
-      <th>Account</th>
-      <th>Code Range</th>
-      <th>Category</th>
-    </tr>
+      <tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Account</th><th>Code Range</th><th>Category</th></tr>
   </table>
 </div>
 
-    </div>
+<div id="journalTab" class="tabContent">
+  <div class="scrollable">
+    <table id="journalTable">
+        <tr><th>Date</th><th>Account</th><th>Code Range</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th></tr>
+    </table>
+  </div>
+</div>
 
-    <div id="journalTab" class="tabContent">
-      <h2>Journal Entries</h2>
-      <div class="scrollable">
-        <table id="journalTable">
-<tr><th>Date</th><th>Account</th><th>Code Range</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th></tr>
-        </table>
-      </div>
-    </div>
+<div id="ledgerTab" class="tabContent">
+  <div class="scrollable">
+    <table id="ledgerTable">
+        <tr><th>Account</th><th>Code Range</th><th>Category</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
+    </table>
+  </div>
+</div>
 
-    <div id="ledgerTab" class="tabContent">
-      <h2>General Ledger</h2>
-      <div class="scrollable">
-        <table id="ledgerTable">
-         <tr><th>Account</th><th>Code Range</th><th>Category</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
-        </table>
-      </div>
-    </div>
   </div>
 </main>
 
@@ -400,10 +389,11 @@ function generateJournal(){
     alert("Journal generated!");
 }
 
-function displayJournal(){
+function displayJournal() {
     const table = document.getElementById('journalTable');
     table.innerHTML = '<tr><th>Date</th><th>Account</th><th>Code Range</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th></tr>';
-    
+
+    const fragment = document.createDocumentFragment();
     journal.forEach(entry => {
         const range = getCodeRange(entry.Account);
         const tr = document.createElement('tr');
@@ -414,9 +404,11 @@ function displayJournal(){
                         <td class="debit">${entry.Debit || ''}</td>
                         <td class="credit">${entry.Credit || ''}</td>
                         <td>${entry.Description}</td>`;
-        table.appendChild(tr);
+        fragment.appendChild(tr);
     });
+    table.appendChild(fragment);
 }
+
 
 
 function generateLedger(){
@@ -430,11 +422,12 @@ function generateLedger(){
     alert("General Ledger generated!");
 }
 
-function displayLedger(){
+function displayLedger() {
     const table = document.getElementById('ledgerTable');
     table.innerHTML = '<tr><th>Account</th><th>Code Range</th><th>Category</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>';
-    
-    for(const acc in ledger){
+
+    const fragment = document.createDocumentFragment();
+    for (const acc in ledger) {
         let balance = 0;
         ledger[acc].forEach(entry => {
             balance += (entry.Debit || 0) - (entry.Credit || 0);
@@ -448,12 +441,11 @@ function displayLedger(){
                             <td class="debit">${(entry.Debit||0).toFixed(2)}</td>
                             <td class="credit">${(entry.Credit||0).toFixed(2)}</td>
                             <td>${balance.toFixed(2)}</td>`;
-            table.appendChild(tr);
+            fragment.appendChild(tr);
         });
     }
+    table.appendChild(fragment);
 }
-
-
 
 function downloadJournal(){
     if(journal.length===0){ 
@@ -660,26 +652,30 @@ function downloadSample() {
 
 
 function openTab(evt, tabName) {
-  // Hide all tab contents
-  const tabContents = document.getElementsByClassName("tabContent");
-  for (let i = 0; i < tabContents.length; i++) {
-    tabContents[i].style.display = "none";
-  }
+    // Hide all tab contents
+    const tabContents = document.getElementsByClassName("tabContent");
+    for (let i = 0; i < tabContents.length; i++) tabContents[i].style.display = "none";
 
-  // Remove "active" class from all buttons
-  const tabButtons = document.getElementsByClassName("tabButton");
-  for (let i = 0; i < tabButtons.length; i++) {
-    tabButtons[i].classList.remove("active");
-  }
+    // Remove active class
+    const tabButtons = document.getElementsByClassName("tabButton");
+    for (let i = 0; i < tabButtons.length; i++) tabButtons[i].classList.remove("active");
 
-  // Show the selected tab and set button active
-  document.getElementById(tabName).style.display = "block";
-  evt.currentTarget.classList.add("active");
+    // Show selected tab
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.classList.add("active");
+
+    // Only display if data exists
+    if (tabName === "journalTab" && journal.length > 0) displayJournal();
+    if (tabName === "ledgerTab" && Object.keys(ledger).length > 0) displayLedger();
 }
-  window.onload = function() {
+
+
+ window.onload = function() {
     populateSample();
     document.getElementById("sampleTab").style.display = "block"; // Show first tab
 };
+
+
 
 
 </script>
@@ -687,6 +683,7 @@ function openTab(evt, tabName) {
 
 </body>
 </html>
+
 
 
 
