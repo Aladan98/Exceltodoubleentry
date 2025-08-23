@@ -183,7 +183,7 @@ tr:hover {
       <h2>Journal Entries</h2>
       <div class="scrollable">
         <table id="journalTable">
-'<tr><th>Date</th><th>Account</th><th>Code Range</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th></tr>';
+<tr><th>Date</th><th>Account</th><th>Code Range</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th></tr>;
         </table>
       </div>
     </div>
@@ -192,7 +192,7 @@ tr:hover {
       <h2>General Ledger</h2>
       <div class="scrollable">
         <table id="ledgerTable">
-         <tr><th>Account</th><th>Code Range</th><th>Category</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>';
+         <tr><th>Account</th><th>Code Range</th><th>Category</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>;
         </table>
       </div>
     </div>
@@ -614,8 +614,9 @@ function getCodeRange(account) {
     }
     return '';
 }
-function downloadSample(){
-    const exportData = sampleData.map(row => {
+function downloadSample() {
+    // Prepare sample data with code ranges and categories
+    const sampleDataWithCodes = sampleData.map(row => {
         const category = getAccountTypeByCode(accountMapping[row.Account] || 0);
         const range = getCodeRange(row.Account);
         return {
@@ -624,18 +625,38 @@ function downloadSample(){
             Type: row.Type,
             Amount: row.Amount,
             Account: row.Account,
-            CodeRange: range,   // <-- use general code range
+            CodeRange: range,
             Category: category
         };
     });
 
-    const ws = XLSX.utils.json_to_sheet(exportData, { header: ["Date","Description","Type","Amount","Account","CodeRange","Category"] });
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Sample");
+    // Create worksheet for sample data
+    const wsSample = XLSX.utils.json_to_sheet(sampleDataWithCodes, { 
+        header: ["Date", "Description", "Type", "Amount", "Account", "CodeRange", "Category"]
+    });
 
+    // Prepare legend data
+    const legendData = [
+        {Category: "Assets", CodeRange: "1000-1999"},
+        {Category: "Expense", CodeRange: "2000-3999"},
+        {Category: "Liabilities", CodeRange: "4000-4999"},
+        {Category: "Income", CodeRange: "5000-5999"},
+        {Category: "Capital", CodeRange: "6000-6999"}
+    ];
+
+    // Create worksheet for legend
+    const wsLegend = XLSX.utils.json_to_sheet(legendData, {
+        header: ["Category", "CodeRange"]
+    });
+
+    // Create workbook and append sheets
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, wsSample, "Sample Data");
+    XLSX.utils.book_append_sheet(wb, wsLegend, "Code Legend");
+
+    // Export file
     XLSX.writeFile(wb, "SamplePettyCash.xlsx");
 }
-
 
 
 function openTab(evt, tabName) {
@@ -666,6 +687,7 @@ function openTab(evt, tabName) {
 
 </body>
 </html>
+
 
 
 
