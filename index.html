@@ -620,12 +620,28 @@ function exportPlatform() {
 }
 
 
-
-
 function downloadSample(){
-    const ws = XLSX.utils.json_to_sheet(sampleData);
+    // Map sample data to include Code and Category
+    const exportData = sampleData.map(row => {
+        const code = accountMapping[row.Account] || 0;
+        const category = getAccountTypeByCode(code);
+        return {
+            Date: row.Date,
+            Description: row.Description,
+            Type: row.Type,
+            Amount: row.Amount,
+            Account: row.Account,
+            Code: code,
+            Category: category
+        };
+    });
+
+    // Create sheet and workbook
+    const ws = XLSX.utils.json_to_sheet(exportData, { header: ["Date","Description","Type","Amount","Account","Code","Category"] });
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Sample");
+
+    // Export Excel file
     XLSX.writeFile(wb, "SamplePettyCash.xlsx");
 }
 
@@ -652,6 +668,7 @@ function openTab(evt, tabName) {
 
 </body>
 </html>
+
 
 
 
