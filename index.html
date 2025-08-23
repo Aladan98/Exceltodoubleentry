@@ -220,7 +220,6 @@ const sampleData = [
   {Date:"2025-08-18", Description:"Loan Repayment", Type:"Payment", Amount:500, Account:"Liabilities"}
 ];
 
-// Define account codes for categories
 const accountCodes = {
     Asset: { min: 1000, max: 1999 },
     Expense: { min: 2000, max: 3999 },
@@ -229,7 +228,6 @@ const accountCodes = {
     Capital: { min: 6000, max: 6999 },
 };
 
-// Map each account to a code
 const accountMapping = {
     "Stationery": 2001,
     "Staff Food": 2002,
@@ -247,96 +245,57 @@ const accountMapping = {
     "Liabilities": 4001
 };
 
-// Determine account category by code
+// --- Detect Account safely ---
+function detectAccount(description) {
+    const lower = description ? description.toLowerCase() : "";
+    for (const acc in accountMapping) {
+        if (lower.includes(acc.toLowerCase())) return acc;
+    }
+    return "Misc";
+}
+
+// --- Get category from code ---
 function getAccountTypeByCode(code) {
     for (const [type, range] of Object.entries(accountCodes)) {
-        if (code >= range.min && code <= range.max) {
-            return type;
-        }
+        if (code >= range.min && code <= range.max) return type;
     }
     return "Unknown";
 }
 
-function populateSample() {
-    const table = document.getElementById('sampleTable');
-    table.innerHTML = `<tr>
-        <th>Date</th>
-        <th>Description</th>
-        <th>Type</th>
-        <th>Amount</th>
-        <th>Account</th>
-        <th>Code</th>
-        <th>Category</th>
-    </tr>`;
-
-    sampleData.forEach(row => {
-        const code = accountMapping[row.Account] || 0;
-        const category = getAccountTypeByCode(code);
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${row.Date}</td>
-                        <td>${row.Description}</td>
-                        <td>${row.Type}</td>
-                        <td>${row.Amount}</td>
-                        <td>${row.Account}</td>
-                        <td>${code}</td>
-                        <td>${category}</td>`;
-        table.appendChild(tr);
-    });
-}
-
-
-
-function detectAccount(description) {
-    if (!description) return "Misc";
-
-    description = description.toLowerCase().trim();
-    let bestMatch = "Misc";
-    let maxScore = 0;
-
-    for (const acc in accountKeywords) {
-        const { keywords, weight } = accountKeywords[acc];
-        const hits = keywords.filter(keyword => 
-            new RegExp(`\\b${keyword}\\b`, 'i').test(description)
-        ).length;
-
-        const score = hits * weight;
-
-        if (score > maxScore) {
-            maxScore = score;
-            bestMatch = acc;
-        }
-    }
-
-    return bestMatch;
-}
-
-
+// --- Format Excel/Date ---
 function formatDate(excelDate) {
-    if (!excelDate) return ""; // Handle empty cells
-
-    // Excel serial number (assume 1900 system)
+    if (!excelDate) return "";
     if (!isNaN(excelDate)) {
         const jsDate = new Date((excelDate - 25569) * 86400 * 1000);
         return jsDate.toISOString().split("T")[0];
     }
-
-    // Text date parsing (DD/MM/YYYY or YYYY-MM-DD)
     const parts = excelDate.split(/[-\/]/);
     if (parts.length === 3) {
         let day, month, year;
-        if (parts[0].length === 4) { // YYYY-MM-DD
-            [year, month, day] = parts;
-        } else { // DD/MM/YYYY
-            [day, month, year] = parts;
-        }
-        const parsedDate = new Date(`${year}-${month}-${day}`);
-        if (!isNaN(parsedDate)) return parsedDate.toISOString().split("T")[0];
+        if (parts[0].length === 4) [year, month, day] = parts;
+        else [day, month, year] = parts;
+        const parsed = new Date(`${year}-${month}-${day}`);
+        if (!isNaN(parsed)) return parsed.toISOString().split("T")[0];
     }
+    const fallback = new Date(excelDate);
+    return !isNaN(fallback) ? fallback.toISOString().split("T")[0] : "";
+}
 
-    // fallback for any other formats
-    const fallbackDate = new Date(excelDate);
-    return !isNaN(fallbackDate) ? fallbackDate.toISOString().split("T")[0] : "";
+// --- Populate sample table ---
+function populateSample() {
+    const table = document.getElementById('sampleTable');
+    table.innerHTML = `<tr>
+        <th>Date</th><th>Description</th><th>Type</th><th>Amount</th>
+        <th>Account</th><th>Code</th><th>Category</th>
+    </tr>`;
+    sampleData.forEach(row => {
+        const code = accountMapping[row.Account] || 0;
+        const category = getAccountTypeByCode(code);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${row.Date}</td><td>${row.Description}</td><td>${row.Type}</td><td>${row.Amount}</td>
+                        <td>${row.Account}</td><td>${code}</td><td>${category}</td>`;
+        table.appendChild(tr);
+    });
 }
 
 
@@ -668,6 +627,7 @@ function openTab(evt, tabName) {
 
 </body>
 </html>
+
 
 
 
