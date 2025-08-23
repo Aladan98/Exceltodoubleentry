@@ -163,27 +163,27 @@ tr:hover {
       <button class="tabButton" onclick="openTab(event, 'ledgerTab')">General Ledger</button>
     </div>
 
-    <!-- Tab Contents -->
-    <table id="sampleTable">
-  <tr>
-    <th>Date</th>
-    <th>Description</th>
-    <th>Type</th>
-    <th>Amount</th>
-    <th>Account</th>
-    <th>Code</th>
-    <th>Category</th>
-  </tr>
-</table>
+<div id="sampleTab" class="tabContent">
+  <table id="sampleTable">
+    <tr>
+      <th>Date</th>
+      <th>Description</th>
+      <th>Type</th>
+      <th>Amount</th>
+      <th>Account</th>
+      <th>Code Range</th>
+      <th>Category</th>
+    </tr>
+  </table>
+</div>
 
-      </div>
     </div>
 
     <div id="journalTab" class="tabContent">
       <h2>Journal Entries</h2>
       <div class="scrollable">
         <table id="journalTable">
-          <tr><th>Date</th><th>Account</th><th>Debit</th><th>Credit</th><th>Description</th></tr>
+'<tr><th>Date</th><th>Account</th><th>Code Range</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th></tr>';
         </table>
       </div>
     </div>
@@ -192,7 +192,7 @@ tr:hover {
       <h2>General Ledger</h2>
       <div class="scrollable">
         <table id="ledgerTable">
-          <tr><th>Account</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
+         <tr><th>Account</th><th>Code Range</th><th>Category</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>';
         </table>
       </div>
     </div>
@@ -281,7 +281,7 @@ function formatDate(excelDate) {
         if (parts[0].length === 4) [year, month, day] = parts;
         else [day, month, year] = parts;
         const parsed = new Date(`${year}-${month}-${day}`);
-        if (!isNaN(parsed)) return parsed.toISOString().split("T")[0];
+       if (!isNaN(parsed.getTime())) return parsed.toISOString().split("T")[0];
     }
     const fallback = new Date(excelDate);
     return !isNaN(fallback) ? fallback.toISOString().split("T")[0] : "";
@@ -373,22 +373,7 @@ function displaySheet(data){
     });
 }
 
-    data.forEach(row => {
-        const account = detectAccount(row.Description);
-        const code = accountMapping[account] || 0;
-        const category = getAccountTypeByCode(code);
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${formatDate(row.Date)}</td>
-                        <td>${row.Description}</td>
-                        <td>${row.Type}</td>
-                        <td>${row.Amount}</td>
-                        <td>${account}</td>
-                        <td>${code}</td>
-                        <td>${category}</td>`;
-        table.appendChild(tr);
-    });
-}
+ 
 
 function generateJournal(){
     if(sheetData.length===0){ alert("Load data first!"); return; }
@@ -500,27 +485,37 @@ function downloadLedger(){
 
     const monthlyLedger = {};
 
-    for(const acc in ledger){
+  for(const acc in ledger){
+    ledger[acc].forEach(entry => {
+        const dateObj = new Date(entry.Date);
+        const ym = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2,'0')}`;
+        if(!monthlyLedger[ym]) monthlyLedger[ym] = [];
+
+        // calculate balance separately inside each month
         let balance = 0;
-        ledger[acc].forEach(entry => {
-            const dateObj = new Date(entry.Date);
-            const ym = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2,'0')}`;
-            if(!monthlyLedger[ym]) monthlyLedger[ym] = [];
-
-            balance += (entry.Debit || 0) - (entry.Credit || 0);
-
-            monthlyLedger[ym].push({
-                Account: acc,
-                CodeRange: getCodeRange(acc),
-                Category: entry.Category,
-                Date: entry.Date,
-                Description: entry.Description,
-                Debit: entry.Debit || 0,
-                Credit: entry.Credit || 0,
-                Balance: balance
-            });
+        monthlyLedger[ym].push({
+            Account: acc,
+            CodeRange: getCodeRange(acc),
+            Category: entry.Category,
+            Date: entry.Date,
+            Description: entry.Description,
+            Debit: entry.Debit || 0,
+            Credit: entry.Credit || 0,
+            Balance: 0 // placeholder, we’ll recalc below
         });
-    }
+    });
+}
+
+// Recalculate balance per month
+for(const ym in monthlyLedger){
+    let balances = {};
+    monthlyLedger[ym] = monthlyLedger[ym].map(entry => {
+        if(!balances[entry.Account]) balances[entry.Account] = 0;
+        balances[entry.Account] += (entry.Debit || 0) - (entry.Credit || 0);
+        return {...entry, Balance: balances[entry.Account]};
+    });
+}
+
 
     for(const month in monthlyLedger){
         const ws = XLSX.utils.json_to_sheet(monthlyLedger[month]);
@@ -660,15 +655,18 @@ function openTab(evt, tabName) {
   document.getElementById(tabName).style.display = "block";
   evt.currentTarget.classList.add("active");
 }
-    window.onload = function() {
+  window.onload = function() {
     populateSample();
+    document.getElementById("sampleTab").style.display = "block"; // Show first tab
 };
+
 
 </script>
 
 
 </body>
 </html>
+
 
 
 
