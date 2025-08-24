@@ -7,125 +7,125 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 body {
-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-background: #121212;
-color: #e0e0e0;
-margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #121212;
+    color: #e0e0e0;
+    margin: 0;
 }
 header {
-background: #1f1f1f;
-color: #00e676;
-padding: 15px 20px;
-font-size: 1.6rem;
-font-weight: bold;
-box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    background: #1f1f1f;
+    color: #00e676;
+    padding: 15px 20px;
+    font-size: 1.6rem;
+    font-weight: bold;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
 main {
-display: flex;
-flex-wrap: wrap;
-padding: 20px;
-gap: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    padding: 20px;
+    gap: 20px;
 }
 .sidebar {
-width: 280px;
-background: #1a1a1a;
-padding: 15px;
-border-radius: 10px;
-color: #e0e0e0;
-display: flex;
-flex-direction: column;
-gap: 12px;
-box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    width: 280px;
+    background: #1a1a1a;
+    padding: 15px;
+    border-radius: 10px;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.6);
 }
 .sidebar button, .sidebar input {
-padding: 10px;
-font-size: 1rem;
-border-radius: 5px;
-border: none;
-cursor: pointer;
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
 }
 .sidebar button {
-background: #00e676;
-color: #121212;
-font-weight: bold;
-transition: 0.2s;
+    background: #00e676;
+    color: #121212;
+    font-weight: bold;
+    transition: 0.2s;
 }
 .sidebar button:hover {
-background: #00c853;
+    background: #00c853;
 }
 .sidebar input {
-background: #2a2a2a;
-color: #e0e0e0;
+    background: #2a2a2a;
+    color: #e0e0e0;
 }
 .content {
-flex: 1;
-min-width: 300px;
-display: flex;
-flex-direction: column;
-gap: 20px;
+    flex: 1;
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 table {
-width: 100%;
-border-collapse: collapse;
-background: #1f1f1f;
-border-radius: 10px;
-overflow: hidden;
-box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    width: 100%;
+    border-collapse: collapse;
+    background: #1f1f1f;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
 }
 th, td {
-padding: 10px;
-text-align: left;
-border-bottom: 1px solid #333;
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #333;
 }
 th {
-background: #333;
-color: #00e676;
-position: sticky;
-top: 0;
+    background: #333;
+    color: #00e676;
+    position: sticky;
+    top: 0;
 }
 tr:nth-child(even) {
-background: #1a1a1a;
+    background: #1a1a1a;
 }
 tr:hover {
-background: #333;
+    background: #333;
 }
 .scrollable {
-max-height: 300px;
-overflow-y: auto;
-border-radius: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    border-radius: 10px;
 }
 .debit { color: #00e676; font-weight: bold; }
 .credit { color: #ff5252; font-weight: bold; }
 .highlight { background: #ff9800 !important; color: #000; }
 @media(max-width: 768px){
-main { flex-direction: column; }
-.sidebar { width: 100%; }
+    main { flex-direction: column; }
+    .sidebar { width: 100%; }
 }
 
-.tabs {
-display: flex;
-gap: 10px;
-margin-bottom: 15px;
+    .tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 .tabButton {
-padding: 10px 20px;
-background: #1a1a1a;
-color: #e0e0e0;
-border: none;
-border-radius: 5px 5px 0 0;
-cursor: pointer;
-font-weight: bold;
-transition: 0.2s;
+  padding: 10px 20px;
+  background: #1a1a1a;
+  color: #e0e0e0;
+  border: none;
+  border-radius: 5px 5px 0 0;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
 }
 .tabButton.active {
-background: #00e676;
-color: #121212;
+  background: #00e676;
+  color: #121212;
 }
 .tabButton:hover {
-background: #00c853;
+  background: #00c853;
 }
 .tabContent {
-display: none;
+  display: none;
 }
 
 </style>
@@ -134,84 +134,63 @@ display: none;
 
 <header>LEDGIOX</header>
 <main>
-<div class="sidebar">
-<label for="counterAccount">Counter Account</label>
-<input type="text" id="counterAccount" placeholder="Counter Account e.g. Bank">
-<label for="fileInput">Upload Excel/CSV</label>
-<input type="file" id="fileInput" accept=".xlsx,.csv">
-<button onclick="loadExcel()">Load Excel</button>
-<button onclick="generateJournal()">Generate Journal</button>
-<button onclick="generateLedger()">Generate General Ledger</button>
-<button onclick="downloadJournal()">Download Journal</button>
-<button onclick="downloadLedger()">Download Ledger</button>
-<button onclick="downloadSample()">Download Sample Excel</button>
-<label for="platformSelect">Export to Platform</label>
-<select id="platformSelect">
-<option value="">Select Platform</option>
-<option value="zoho">Zoho Books</option>
-<option value="quickbooks">QuickBooks</option>
-<option value="sage">Sage</option>
-</select>
-<button onclick="exportPlatform()">Export CSV</button>
-</div>
-
-<div class="content">
-<!-- Tabs -->
-<div class="tabs">
-<button class="tabButton active" onclick="openTab(event, 'sampleTab')">Sample Excel</button>
-<button class="tabButton" onclick="openTab(event, 'journalTab')">Journal Entries</button>
-<button class="tabButton" onclick="openTab(event, 'ledgerTab')">General Ledger</button>
-</div>
-
-<div id="sampleTab" class="tabContent">
-<table id="sampleTable">
-    <tr>
-      <th>Date</th>
-      <th>Description</th>
-      <th>Type</th>
-      <th>Amount</th>
-      <th>Account</th>
-      <th>Code Range</th>
-      <th>Category</th>
-    </tr>
-      <tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Account</th><th>Code Range</th><th>Category</th></tr>
-</table>
-</div>
-
-    </div>
-<div id="journalTab" class="tabContent">
-  <div class="scrollable">
-    <table id="journalTable">
-        <tr><th>Date</th><th>Account</th><th>Code Range</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th></tr>
-    </table>
+  <div class="sidebar">
+    <label for="counterAccount">Counter Account</label>
+    <input type="text" id="counterAccount" placeholder="Counter Account e.g. Bank">
+    <label for="fileInput">Upload Excel/CSV</label>
+    <input type="file" id="fileInput" accept=".xlsx,.csv">
+    <button onclick="loadExcel()">Load Excel</button>
+    <button onclick="generateJournal()">Generate Journal</button>
+    <button onclick="generateLedger()">Generate General Ledger</button>
+    <button onclick="downloadJournal()">Download Journal</button>
+    <button onclick="downloadLedger()">Download Ledger</button>
+    <button onclick="downloadSample()">Download Sample Excel</button>
+    <label for="platformSelect">Export to Platform</label>
+    <select id="platformSelect">
+      <option value="">Select Platform</option>
+      <option value="zoho">Zoho Books</option>
+      <option value="quickbooks">QuickBooks</option>
+      <option value="sage">Sage</option>
+    </select>
+    <button onclick="exportPlatform()">Export CSV</button>
   </div>
-</div>
+
+  <div class="content">
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tabButton active" onclick="openTab(event, 'sampleTab')">Sample Excel</button>
+      <button class="tabButton" onclick="openTab(event, 'journalTab')">Journal Entries</button>
+      <button class="tabButton" onclick="openTab(event, 'ledgerTab')">General Ledger</button>
+    </div>
+
+    <!-- Tab Contents -->
+    <div id="sampleTab" class="tabContent" style="display:block">
+      <h2>Sample Excel Preview</h2>
+      <div class="scrollable">
+        <table id="sampleTable">
+          <tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Account</th></tr>
+        </table>
+      </div>
+    </div>
 
     <div id="journalTab" class="tabContent">
       <h2>Journal Entries</h2>
       <div class="scrollable">
         <table id="journalTable">
-<tr><th>Date</th><th>Account</th><th>Code Range</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th></tr>
+          <tr><th>Date</th><th>Account</th><th>Debit</th><th>Credit</th><th>Description</th></tr>
         </table>
       </div>
     </div>
-<div id="ledgerTab" class="tabContent">
-  <div class="scrollable">
-    <table id="ledgerTable">
-        <tr><th>Account</th><th>Code Range</th><th>Category</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
-    </table>
-  </div>
-</div>
 
     <div id="ledgerTab" class="tabContent">
       <h2>General Ledger</h2>
       <div class="scrollable">
         <table id="ledgerTable">
-         <tr><th>Account</th><th>Code Range</th><th>Category</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
+          <tr><th>Account</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
         </table>
       </div>
     </div>
-</div>
+  </div>
 </main>
 
 
@@ -221,468 +200,433 @@ let journal = [];
 let ledger = {};
 
 const sampleData = [
-{Date:"2025-08-01", Description:"Office Supplies Purchase", Type:"Payment", Amount:120, Account:"Stationery"},
-{Date:"2025-08-02", Description:"Staff Lunch", Type:"Payment", Amount:45, Account:"Staff Food"},
-{Date:"2025-08-03", Description:"Legal Consultation", Type:"Payment", Amount:300, Account:"Legal"},
-{Date:"2025-08-04", Description:"Product Sale", Type:"Receipt", Amount:500, Account:"Sales"},
-{Date:"2025-08-05", Description:"Car Fuel", Type:"Payment", Amount:60, Account:"Car Fix"},
-{Date:"2025-08-06", Description:"Asset Purchased – Computer", Type:"Payment", Amount:800, Account:"Assets"},
-{Date:"2025-08-07", Description:"Asset Sold – Printer", Type:"Receipt", Amount:200, Account:"Assets"},
-{Date:"2025-08-08", Description:"Discount Received", Type:"Receipt", Amount:50, Account:"Discount Received"},
-{Date:"2025-08-09", Description:"Stationery Purchase", Type:"Payment", Amount:70, Account:"Stationery"},
-{Date:"2025-08-10", Description:"Staff Snacks", Type:"Payment", Amount:30, Account:"Staff Food"},
-{Date:"2025-08-11", Description:"Sales Returned – Product A", Type:"Payment", Amount:100, Account:"Sales Returns"},
-{Date:"2025-08-12", Description:"Legal Fee", Type:"Payment", Amount:250, Account:"Legal"},
-{Date:"2025-08-13", Description:"Printing Flyers", Type:"Payment", Amount:150, Account:"Printing"},
-{Date:"2025-08-14", Description:"Misc Expenses", Type:"Payment", Amount:60, Account:"Misc"},
-{Date:"2025-08-15", Description:"Owner Capital Contribution", Type:"Receipt", Amount:1000, Account:"Capital"},
-{Date:"2025-08-16", Description:"Owner Drawing", Type:"Payment", Amount:200, Account:"Drawings"},
-{Date:"2025-08-17", Description:"Bank Interest Income", Type:"Receipt", Amount:75, Account:"Income"},
-{Date:"2025-08-18", Description:"Loan Repayment", Type:"Payment", Amount:500, Account:"Liabilities"}
+  {Date:"2025-08-01", Description:"Office Supplies Purchase", Type:"Payment", Amount:120, Account:"Stationery"},
+  {Date:"2025-08-02", Description:"Staff Lunch", Type:"Payment", Amount:45, Account:"Staff Food"},
+  {Date:"2025-08-03", Description:"Legal Consultation", Type:"Payment", Amount:300, Account:"Legal"},
+  {Date:"2025-08-04", Description:"Product Sale", Type:"Receipt", Amount:500, Account:"Sales"},
+  {Date:"2025-08-05", Description:"Car Fuel", Type:"Payment", Amount:60, Account:"Car Fix"},
+  {Date:"2025-08-06", Description:"Asset Purchased – Computer", Type:"Payment", Amount:800, Account:"Assets"},
+  {Date:"2025-08-07", Description:"Asset Sold – Printer", Type:"Receipt", Amount:200, Account:"Assets"},
+  {Date:"2025-08-08", Description:"Discount Received", Type:"Receipt", Amount:50, Account:"Discount Received"},
+  {Date:"2025-08-09", Description:"Stationery Purchase", Type:"Payment", Amount:70, Account:"Stationery"},
+  {Date:"2025-08-10", Description:"Staff Snacks", Type:"Payment", Amount:30, Account:"Staff Food"},
+  {Date:"2025-08-11", Description:"Sales Returned – Product A", Type:"Payment", Amount:100, Account:"Sales Returns"},
+  {Date:"2025-08-12", Description:"Legal Fee", Type:"Payment", Amount:250, Account:"Legal"},
+  {Date:"2025-08-13", Description:"Printing Flyers", Type:"Payment", Amount:150, Account:"Printing"},
+  {Date:"2025-08-14", Description:"Misc Expenses", Type:"Payment", Amount:60, Account:"Misc"},
+  {Date:"2025-08-15", Description:"Owner Capital Contribution", Type:"Receipt", Amount:1000, Account:"Capital"},
+  {Date:"2025-08-16", Description:"Owner Drawing", Type:"Payment", Amount:200, Account:"Drawings"},
+  {Date:"2025-08-17", Description:"Bank Interest Income", Type:"Receipt", Amount:75, Account:"Income"},
+  {Date:"2025-08-18", Description:"Loan Repayment", Type:"Payment", Amount:500, Account:"Liabilities"}
 ];
 
+// Define account codes for categories
 const accountCodes = {
-Asset: { min: 1000, max: 1999 },
-Expense: { min: 2000, max: 3999 },
-Liabilities: { min: 4000, max: 4999 },
-Income: { min: 5000, max: 5999 },
-Capital: { min: 6000, max: 6999 },
+    Asset: { min: 1000, max: 1999 },
+    Expense: { min: 2000, max: 3999 },
+    Liabilities: { min: 4000, max: 4999 },
+    Income: { min: 5000, max: 5999 },
+    Capital: { min: 6000, max: 6999 },
 };
 
+// Map each account to a code
 const accountMapping = {
-"Stationery": 2001,
-"Staff Food": 2002,
-"Legal": 2003,
-"Printing": 2004,
-"Car Fix": 2005,
-"Assets": 1001,
-"Sales": 5001,
-"Sales Returns": 2006,
-"Discount Received": 5002,
-"Misc": 2007,
-"Capital": 6001,
-"Drawings": 2008,
-"Income": 5003,
-"Liabilities": 4001
+    "Stationery": 2001,
+    "Staff Food": 2002,
+    "Legal": 2003,
+    "Printing": 2004,
+    "Car Fix": 2005,
+    "Assets": 1001,
+    "Sales": 5001,
+    "Sales Returns": 2006,
+    "Discount Received": 5002,
+    "Misc": 2007,
+    "Capital": 6001,
+    "Drawings": 2008,
+    "Income": 5003,
+    "Liabilities": 4001
 };
 
-// --- Detect Account safely ---
-function detectAccount(description) {
-const lower = description ? description.toLowerCase() : "";
-for (const acc in accountMapping) {
-if (lower.includes(acc.toLowerCase())) return acc;
-}
-return "Misc";
-}
-
-// --- Get category from code ---
+// Determine account category by code
 function getAccountTypeByCode(code) {
-for (const [type, range] of Object.entries(accountCodes)) {
-if (code >= range.min && code <= range.max) return type;
-}
-return "Unknown";
-}
-
-// --- Format Excel/Date ---
-function formatDate(excelDate) {
-if (!excelDate) return "";
-if (!isNaN(excelDate)) {
-const jsDate = new Date((excelDate - 25569) * 86400 * 1000);
-return jsDate.toISOString().split("T")[0];
-}
-const parts = excelDate.split(/[-\/]/);
-if (parts.length === 3) {
-let day, month, year;
-if (parts[0].length === 4) [year, month, day] = parts;
-else [day, month, year] = parts;
-const parsed = new Date(`${year}-${month}-${day}`);
-if (!isNaN(parsed.getTime())) return parsed.toISOString().split("T")[0];
-}
-const fallback = new Date(excelDate);
-return !isNaN(fallback) ? fallback.toISOString().split("T")[0] : "";
+    for (const [type, range] of Object.entries(accountCodes)) {
+        if (code >= range.min && code <= range.max) {
+            return type;
+        }
+    }
+    return "Unknown";
 }
 
-// --- Populate sample table ---
-// --- Populate Sample Table with General Code Range ---
 function populateSample() {
-const table = document.getElementById('sampleTable');
-table.innerHTML = `<tr>
-       <th>Date</th>
-       <th>Description</th>
-       <th>Type</th>
-       <th>Amount</th>
-       <th>Account</th>
-       <th>Code Range</th>
-       <th>Category</th>
-   </tr>`;
+    const table = document.getElementById('sampleTable');
+    table.innerHTML = `<tr>
+        <th>Date</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Account</th>
+        <th>Code</th>
+        <th>Category</th>
+    </tr>`;
 
-sampleData.forEach(row => {
-const code = accountMapping[row.Account] || 0;
-const category = getAccountTypeByCode(code);
-let range = '';
-if(category && accountCodes[category]){
-range = `${accountCodes[category].min} - ${accountCodes[category].max}`;
+    sampleData.forEach(row => {
+        const code = accountMapping[row.Account] || 0;
+        const category = getAccountTypeByCode(code);
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${row.Date}</td>
+                        <td>${row.Description}</td>
+                        <td>${row.Type}</td>
+                        <td>${row.Amount}</td>
+                        <td>${row.Account}</td>
+                        <td>${code}</td>
+                        <td>${category}</td>`;
+        table.appendChild(tr);
+    });
 }
 
-const tr = document.createElement('tr');
-tr.innerHTML = `<td>${row.Date}</td>
-                       <td>${row.Description}</td>
-                       <td>${row.Type}</td>
-                       <td>${row.Amount}</td>
-                       <td>${row.Account}</td>
-                       <td>${range}</td>       <!-- General Code Range -->
-                       <td>${category}</td>`;  <!-- General Category -->
-table.appendChild(tr);
-});
+
+
+function detectAccount(description) {
+    if (!description) return "Misc";
+
+    description = description.toLowerCase().trim();
+    let bestMatch = "Misc";
+    let maxScore = 0;
+
+    for (const acc in accountKeywords) {
+        const { keywords, weight } = accountKeywords[acc];
+        const hits = keywords.filter(keyword => 
+            new RegExp(`\\b${keyword}\\b`, 'i').test(description)
+        ).length;
+
+        const score = hits * weight;
+
+        if (score > maxScore) {
+            maxScore = score;
+            bestMatch = acc;
+        }
+    }
+
+    return bestMatch;
 }
 
+
+function formatDate(excelDate) {
+    if (!excelDate) return ""; // Handle empty cells
+
+    // Excel serial number (assume 1900 system)
+    if (!isNaN(excelDate)) {
+        const jsDate = new Date((excelDate - 25569) * 86400 * 1000);
+        return jsDate.toISOString().split("T")[0];
+    }
+
+    // Text date parsing (DD/MM/YYYY or YYYY-MM-DD)
+    const parts = excelDate.split(/[-\/]/);
+    if (parts.length === 3) {
+        let day, month, year;
+        if (parts[0].length === 4) { // YYYY-MM-DD
+            [year, month, day] = parts;
+        } else { // DD/MM/YYYY
+            [day, month, year] = parts;
+        }
+        const parsedDate = new Date(`${year}-${month}-${day}`);
+        if (!isNaN(parsedDate)) return parsedDate.toISOString().split("T")[0];
+    }
+
+    // fallback for any other formats
+    const fallbackDate = new Date(excelDate);
+    return !isNaN(fallbackDate) ? fallbackDate.toISOString().split("T")[0] : "";
+}
 
 
 function validateSheet(data){
-const required = ["Date","Description","Type","Amount"];
-for(const row of data){
-for(const key of required){
-if(!(key in row) || row[key]==="") return false;
-}
-}
-return true;
+    const required = ["Date","Description","Type","Amount"];
+    for(const row of data){
+        for(const key of required){
+            if(!(key in row) || row[key]==="") return false;
+        }
+    }
+    return true;
 }
 
 function loadExcel() {
-const file = document.getElementById('fileInput').files[0];
-if(!file){ alert("Select a file first!"); return; }
-const reader = new FileReader();
-reader.onload = function(e){
-const data = new Uint8Array(e.target.result);
-const workbook = XLSX.read(data,{type:"array"});
-const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-if(!validateSheet(jsonData)){ alert("Excel missing required columns!"); return; }
-sheetData = jsonData;
-displaySheet(sheetData);
-alert("Excel loaded successfully!");
-}
-reader.readAsArrayBuffer(file);
+    const file = document.getElementById('fileInput').files[0];
+    if(!file){ alert("Select a file first!"); return; }
+    const reader = new FileReader();
+    reader.onload = function(e){
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data,{type:"array"});
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+        if(!validateSheet(jsonData)){ alert("Excel missing required columns!"); return; }
+        sheetData = jsonData;
+        displaySheet(sheetData);
+        alert("Excel loaded successfully!");
+    }
+    reader.readAsArrayBuffer(file);
 }
 
 function displaySheet(data){
-const table = document.getElementById('sampleTable');
-table.innerHTML = `<tr>
-       <th>Date</th><th>Description</th><th>Type</th><th>Amount</th>
-       <th>Account</th><th>Code Range</th><th>Category</th>
-   </tr>`;
-data.forEach(row => {
-const account = detectAccount(row.Description);
-const category = getAccountTypeByCode(accountMapping[account] || 0);
-const range = getCodeRange(account);
+    const table = document.getElementById('sampleTable');
+    table.innerHTML = `<tr>
+        <th>Date</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Account</th>
+        <th>Code</th>
+        <th>Category</th>
+    </tr>`;
 
-const tr = document.createElement('tr');
-tr.innerHTML = `<td>${formatDate(row.Date)}</td>
-                       <td>${row.Description}</td>
-                       <td>${row.Type}</td>
-                       <td>${row.Amount}</td>
-                       <td>${account}</td>
-                       <td>${range}</td>
-                       <td>${category}</td>`;
-table.appendChild(tr);
-});
+    data.forEach(row => {
+        const account = detectAccount(row.Description);
+        const code = accountMapping[account] || 0;
+        const category = getAccountTypeByCode(code);
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${formatDate(row.Date)}</td>
+                        <td>${row.Description}</td>
+                        <td>${row.Type}</td>
+                        <td>${row.Amount}</td>
+                        <td>${account}</td>
+                        <td>${code}</td>
+                        <td>${category}</td>`;
+        table.appendChild(tr);
+    });
 }
-
-
 
 function generateJournal(){
-if(sheetData.length===0){ alert("Load data first!"); return; }
-journal = [];
-ledger = {};
-const counterAccount = document.getElementById('counterAccount').value || "Cash";
+    if(sheetData.length===0){ alert("Load data first!"); return; }
+    journal = [];
+    ledger = {};
+    const counterAccount = document.getElementById('counterAccount').value || "Cash";
 
-sheetData.forEach(row => {
-const acc = detectAccount(row.Description);
-const code = accountMapping[acc] || 0;
-const category = getAccountTypeByCode(code);
-const amount = parseFloat(row.Amount);
-const date = formatDate(row.Date);
+    sheetData.forEach(row => {
+        const acc = detectAccount(row.Description);
+        const code = accountMapping[acc] || 0;
+        const category = getAccountTypeByCode(code);
+        const amount = parseFloat(row.Amount);
+        const date = formatDate(row.Date);
 
-if(row.Type.toLowerCase()==="payment"){
-journal.push({Date:date,Account:acc,Code:code,Category:category,Debit:amount,Credit:0,Description:row.Description});
-journal.push({Date:date,Account:counterAccount,Code:0,Category:"Cash",Debit:0,Credit:amount,Description:row.Description});
-} else {
-journal.push({Date:date,Account:counterAccount,Code:0,Category:"Cash",Debit:amount,Credit:0,Description:row.Description});
-journal.push({Date:date,Account:acc,Code:code,Category:category,Debit:0,Credit:amount,Description:row.Description});
-}
-});
-displayJournal();
-alert("Journal generated!");
+        if(row.Type.toLowerCase()==="payment"){
+            journal.push({Date:date,Account:acc,Code:code,Category:category,Debit:amount,Credit:0,Description:row.Description});
+            journal.push({Date:date,Account:counterAccount,Code:0,Category:"Cash",Debit:0,Credit:amount,Description:row.Description});
+        } else {
+            journal.push({Date:date,Account:counterAccount,Code:0,Category:"Cash",Debit:amount,Credit:0,Description:row.Description});
+            journal.push({Date:date,Account:acc,Code:code,Category:category,Debit:0,Credit:amount,Description:row.Description});
+        }
+    });
+    displayJournal();
+    alert("Journal generated!");
 }
 
 function displayJournal(){
-function displayJournal() {
-const table = document.getElementById('journalTable');
-table.innerHTML = '<tr><th>Date</th><th>Account</th><th>Code Range</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th></tr>';
+    const table = document.getElementById('journalTable');
+    table.innerHTML = '<tr><th>Date</th><th>Account</th><th>Code</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th></tr>';
     
-
-    const fragment = document.createDocumentFragment();
-journal.forEach(entry => {
-const range = getCodeRange(entry.Account);
-const tr = document.createElement('tr');
-tr.innerHTML = `<td>${entry.Date}</td>
-                       <td>${entry.Account}</td>
-                       <td>${range}</td>
-                       <td>${entry.Category}</td>
-                       <td class="debit">${entry.Debit || ''}</td>
-                       <td class="credit">${entry.Credit || ''}</td>
-                       <td>${entry.Description}</td>`;
+    journal.forEach(entry => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${entry.Date}</td>
+                        <td>${entry.Account}</td>
+                        <td>${entry.Code}</td>
+                        <td>${entry.Category}</td>
+                        <td class="debit">${entry.Debit || ''}</td>
+                        <td class="credit">${entry.Credit || ''}</td>
+                        <td>${entry.Description}</td>`;
         table.appendChild(tr);
-        fragment.appendChild(tr);
-});
-    table.appendChild(fragment);
+    });
 }
-
 
 
 function generateLedger(){
-if(journal.length===0){ alert("Generate journal first!"); return; }
-ledger = {};
-journal.forEach(entry => {
-if(!ledger[entry.Account]) ledger[entry.Account] = [];
-ledger[entry.Account].push({...entry});
-});
-displayLedger();
-alert("General Ledger generated!");
+    if(journal.length===0){ alert("Generate journal first!"); return; }
+    ledger = {};
+    journal.forEach(entry => {
+        if(!ledger[entry.Account]) ledger[entry.Account] = [];
+        ledger[entry.Account].push({...entry});
+    });
+    displayLedger();
+    alert("General Ledger generated!");
 }
 
 function displayLedger(){
-function displayLedger() {
-const table = document.getElementById('ledgerTable');
-table.innerHTML = '<tr><th>Account</th><th>Code Range</th><th>Category</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>';
+    const table = document.getElementById('ledgerTable');
+    table.innerHTML = '<tr><th>Account</th><th>Code</th><th>Category</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>';
     
     for(const acc in ledger){
-
-    const fragment = document.createDocumentFragment();
-    for (const acc in ledger) {
-let balance = 0;
-ledger[acc].forEach(entry => {
-balance += (entry.Debit || 0) - (entry.Credit || 0);
-const range = getCodeRange(entry.Account);
-const tr = document.createElement('tr');
-tr.innerHTML = `<td>${entry.Account}</td>
-                           <td>${range}</td>
-                           <td>${entry.Category}</td>
-                           <td>${entry.Date}</td>
-                           <td>${entry.Description}</td>
-                           <td class="debit">${(entry.Debit||0).toFixed(2)}</td>
-                           <td class="credit">${(entry.Credit||0).toFixed(2)}</td>
-                           <td>${balance.toFixed(2)}</td>`;
+        let balance = 0;
+        ledger[acc].forEach(entry => {
+            balance += (entry.Debit || 0) - (entry.Credit || 0);
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${entry.Account}</td>
+                <td>${entry.Code || ''}</td>
+                <td>${entry.Category || ''}</td>
+                <td>${entry.Date}</td>
+                <td>${entry.Description}</td>
+                <td class="debit">${(entry.Debit||0).toFixed(2)}</td>
+                <td class="credit">${(entry.Credit||0).toFixed(2)}</td>
+                <td>${balance.toFixed(2)}</td>`;
             table.appendChild(tr);
-            fragment.appendChild(tr);
-});
-}
-    table.appendChild(fragment);
+        });
+    }
 }
 
 
 
 function downloadJournal(){
-if(journal.length===0){ 
-alert("Generate journal first!"); 
-return; 
+    if(journal.length===0){ 
+        alert("Generate journal first!"); 
+        return; 
+    }
+    // Include Code and Category
+    const exportData = journal.map(entry => ({
+        Date: entry.Date,
+        Account: entry.Account,
+        Code: entry.Code || '',
+        Category: entry.Category || '',
+        Debit: entry.Debit,
+        Credit: entry.Credit,
+        Description: entry.Description
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Journal");
+    XLSX.writeFile(wb, "Journal.xlsx");
 }
 
-const exportData = journal.map(entry => ({
-Date: entry.Date,
-Account: entry.Account,
-CodeRange: getCodeRange(entry.Account),
-Category: entry.Category,
-Debit: entry.Debit,
-Credit: entry.Credit,
-Description: entry.Description
-}));
-
-const ws = XLSX.utils.json_to_sheet(exportData);
-const wb = XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(wb, ws, "Journal");
-XLSX.writeFile(wb, "Journal.xlsx");
-}
 
 function downloadLedger(){
-if(Object.keys(ledger).length === 0){
-alert("Generate ledger first!");
-return;
-}
+    if(Object.keys(ledger).length === 0){
+        alert("Generate ledger first!");
+        return;
+    }
 
-const monthlyLedger = {};
+    // Group ledger entries by year-month
+    const monthlyLedger = {};
 
-for(const acc in ledger){
-ledger[acc].forEach(entry => {
-const dateObj = new Date(entry.Date);
-const ym = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2,'0')}`;
-if(!monthlyLedger[ym]) monthlyLedger[ym] = [];
+    for(const acc in ledger){
+        let balance = 0;
+        ledger[acc].forEach(entry => {
+            const dateObj = new Date(entry.Date);
+            const ym = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2,'0')}`;
 
-// calculate balance separately inside each month
-let balance = 0;
-monthlyLedger[ym].push({
-Account: acc,
-CodeRange: getCodeRange(acc),
-Category: entry.Category,
-Date: entry.Date,
-Description: entry.Description,
-Debit: entry.Debit || 0,
-Credit: entry.Credit || 0,
-Balance: 0 // placeholder, we’ll recalc below
-});
-});
-}
+            if(!monthlyLedger[ym]) monthlyLedger[ym] = [];
 
-// Recalculate balance per month
-for(const ym in monthlyLedger){
-let balances = {};
-monthlyLedger[ym] = monthlyLedger[ym].map(entry => {
-if(!balances[entry.Account]) balances[entry.Account] = 0;
-balances[entry.Account] += (entry.Debit || 0) - (entry.Credit || 0);
-return {...entry, Balance: balances[entry.Account]};
-});
-}
+            balance += (entry.Debit || 0) - (entry.Credit || 0);
 
+            monthlyLedger[ym].push({
+                Account: acc,
+                Code: entry.Code || '',
+                Category: entry.Category || '',
+                Date: entry.Date,
+                Description: entry.Description,
+                Debit: entry.Debit || 0,
+                Credit: entry.Credit || 0,
+                Balance: balance
+            });
+        });
+    }
 
-for(const month in monthlyLedger){
-const ws = XLSX.utils.json_to_sheet(monthlyLedger[month]);
-const wb = XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(wb, ws, "Ledger");
-XLSX.writeFile(wb, `Ledger_${month}.xlsx`);
-}
+    // Export one file per month
+    for(const month in monthlyLedger){
+        const ws = XLSX.utils.json_to_sheet(monthlyLedger[month]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Ledger");
+        XLSX.writeFile(wb, `Ledger_${month}.xlsx`);
+    }
 
-alert("Ledger exported as monthly files!");
+    alert("Ledger exported as monthly files!");
 }
 
 
 function exportPlatform() {
-if (!journal || journal.length === 0) {
-alert("No journal data to export!");
-return;
+    if (!journal || journal.length === 0) {
+        alert("No journal data to export!");
+        return;
+    }
+
+    const platform = document.getElementById("platformSelect").value;
+    if (!platform) { 
+        alert("Select a platform!"); 
+        return; 
+    }
+
+    let exportData = [];
+
+    if (platform === "zoho") {
+        exportData = journal.map(entry => ({
+            "Date": entry.Date,
+            "Account Name": entry.Account,
+            "Code": entry.Code || '',
+            "Category": entry.Category || '',
+            "Debit": entry.Debit,
+            "Credit": entry.Credit,
+            "Description": entry.Description
+        }));
+    } else if (platform === "quickbooks") {
+        exportData = journal.map(entry => ({
+            "TxnDate": entry.Date,
+            "Account": entry.Account,
+            "Code": entry.Code || '',
+            "Category": entry.Category || '',
+            "Debit": entry.Debit,
+            "Credit": entry.Credit,
+            "Memo": entry.Description
+        }));
+    } else if (platform === "sage") {
+        exportData = journal.map(entry => ({
+            "Date": entry.Date,
+            "NominalCode": entry.Code || '',
+            "Category": entry.Category || '',
+            "Description": entry.Description,
+            "DebitAmount": entry.Debit || 0,
+            "CreditAmount": entry.Credit || 0
+        }));
+    }
+
+    // Convert to CSV
+    function convertToCSV(objArray) {
+        const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
+        let str = '';
+        const headers = Object.keys(array[0]).join(',');
+        str += headers + '\r\n';
+
+        array.forEach(item => {
+            let line = [];
+            for (let key in item) {
+                let val = item[key] != null ? item[key] : '';
+                val = `"${val.toString().replace(/"/g, '""')}"`;
+                line.push(val);
+            }
+            str += line.join(',') + '\r\n';
+        });
+        return str;
+    }
+
+    // Trigger download
+    const csv = convertToCSV(exportData);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download', `${platform}_Export.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    alert(`Journal exported for ${platform}!`);
 }
 
-const platform = document.getElementById("platformSelect").value;
-if (!platform) { 
-alert("Select a platform!"); 
-return; 
-}
-
-let exportData = [];
-
-if (platform === "zoho") {
-exportData = journal.map(entry => ({
-"Date": entry.Date,
-"Account Name": entry.Account,
-"CodeRange": getCodeRange(entry.Account),  // use general code range
-"Category": entry.Category,
-"Debit": entry.Debit,
-"Credit": entry.Credit,
-"Description": entry.Description
-}));
-} else if (platform === "quickbooks") {
-exportData = journal.map(entry => ({
-"TxnDate": entry.Date,
-"Account": entry.Account,
-"CodeRange": getCodeRange(entry.Account),  // use general code range
-"Category": entry.Category,
-"Debit": entry.Debit,
-"Credit": entry.Credit,
-"Memo": entry.Description
-}));
-} else if (platform === "sage") {
-exportData = journal.map(entry => ({
-"Date": entry.Date,
-"NominalCodeRange": getCodeRange(entry.Account), // use general code range
-"Category": entry.Category,
-"Description": entry.Description,
-"DebitAmount": entry.Debit || 0,
-"CreditAmount": entry.Credit || 0
-}));
-}
-
-// Convert to CSV
-function convertToCSV(objArray) {
-const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
-let str = '';
-const headers = Object.keys(array[0]).join(',');
-str += headers + '\r\n';
-
-array.forEach(item => {
-let line = [];
-for (let key in item) {
-let val = item[key] != null ? item[key] : '';
-val = `"${val.toString().replace(/"/g, '""')}"`;
-line.push(val);
-}
-str += line.join(',') + '\r\n';
-});
-return str;
-}
-
-// Trigger download
-const csv = convertToCSV(exportData);
-const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-const link = document.createElement("a");
-link.href = URL.createObjectURL(blob);
-link.setAttribute('download', `${platform}_Export.csv`);
-document.body.appendChild(link);
-link.click();
-document.body.removeChild(link);
-
-alert(`Journal exported for ${platform}!`);
-}
 
 
-function getCodeRange(account) {
-const code = accountMapping[account] || 0;
-const category = getAccountTypeByCode(code);
-if(category && accountCodes[category]){
-return `${accountCodes[category].min} - ${accountCodes[category].max}`;
-}
-return '';
-}
-function downloadSample() {
-// Prepare sample data with code ranges and categories
-const sampleDataWithCodes = sampleData.map(row => {
-const category = getAccountTypeByCode(accountMapping[row.Account] || 0);
-const range = getCodeRange(row.Account);
-return {
-Date: row.Date,
-Description: row.Description,
-Type: row.Type,
-Amount: row.Amount,
-Account: row.Account,
-CodeRange: range,
-Category: category
-};
-});
 
-// Create worksheet for sample data
-const wsSample = XLSX.utils.json_to_sheet(sampleDataWithCodes, { 
-header: ["Date", "Description", "Type", "Amount", "Account", "CodeRange", "Category"]
-});
-
-// Prepare legend data
-const legendData = [
-{Category: "Assets", CodeRange: "1000-1999"},
-{Category: "Expense", CodeRange: "2000-3999"},
-{Category: "Liabilities", CodeRange: "4000-4999"},
-{Category: "Income", CodeRange: "5000-5999"},
-{Category: "Capital", CodeRange: "6000-6999"}
-];
-
-// Create worksheet for legend
-const wsLegend = XLSX.utils.json_to_sheet(legendData, {
-header: ["Category", "CodeRange"]
-});
-
-// Create workbook and append sheets
-const wb = XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(wb, wsSample, "Sample Data");
-XLSX.utils.book_append_sheet(wb, wsLegend, "Code Legend");
-
-// Export file
-XLSX.writeFile(wb, "SamplePettyCash.xlsx");
+function downloadSample(){
+    const ws = XLSX.utils.json_to_sheet(sampleData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sample");
+    XLSX.writeFile(wb, "SamplePettyCash.xlsx");
 }
 
 
@@ -703,45 +647,11 @@ function openTab(evt, tabName) {
   document.getElementById(tabName).style.display = "block";
   evt.currentTarget.classList.add("active");
 }
-  window.onload = function() {
-    // Hide all tab contents
-    const tabContents = document.getElementsByClassName("tabContent");
-    for (let i = 0; i < tabContents.length; i++) tabContents[i].style.display = "none";
-
-    // Remove active class
-    const tabButtons = document.getElementsByClassName("tabButton");
-    for (let i = 0; i < tabButtons.length; i++) tabButtons[i].classList.remove("active");
-
-    // Show selected tab
-    document.getElementById(tabName).style.display = "block";
-    evt.currentTarget.classList.add("active");
-
-    // Only display if data exists
-    if (tabName === "journalTab" && journal.length > 0) displayJournal();
-    if (tabName === "ledgerTab" && Object.keys(ledger).length > 0) displayLedger();
-}
-
-
- window.onload = function() {
-populateSample();
-document.getElementById("sampleTab").style.display = "block"; // Show first tab
-};
-
-
-
-
 </script>
 
 
 </body>
 </html>
-
-
-
-
-
-
-
 
 
 
