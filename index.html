@@ -63,7 +63,9 @@ main {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    height: calc(100vh - 60px); /* Fill viewport minus header height */
 }
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -90,10 +92,11 @@ tr:hover {
     background: #333;
 }
 .scrollable {
-    max-height: 300px;
-    overflow-y: auto;
+    flex: 1;           /* Grow to fill remaining space */
+    overflow-y: auto;  /* Scroll if content exceeds height */
     border-radius: 10px;
 }
+
 .debit { color: #00e676; font-weight: bold; }
 .credit { color: #ff5252; font-weight: bold; }
 .highlight { background: #ff9800 !important; color: #000; }
@@ -683,6 +686,7 @@ function openTab(evt, tabName) {
 
 </body>
 </html>
+
 
 
 
