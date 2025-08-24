@@ -140,10 +140,6 @@ tr:hover {
     <label for="fileInput">Upload Excel/CSV</label>
     <input type="file" id="fileInput" accept=".xlsx,.csv">
     <button onclick="loadExcel()">Load Excel</button>
- <label for="sheetSelect">Select Sheet</label>
-<select id="sheetSelect" onchange="loadSelectedSheet()">
-   <option value="">-- choose sheet --</option>
-</select>
     <button onclick="generateJournal()">Generate Journal</button>
     <button onclick="generateLedger()">Generate General Ledger</button>
     <button onclick="downloadJournal()">Download Journal</button>
@@ -326,11 +322,6 @@ function validateSheet(data){
     return true;
 }
 
-let sheetData = [];
-let journal = [];
-let ledger = {};
-let currentWorkbook = null;  // <-- added
-
 function loadExcel() {
     const file = document.getElementById('fileInput').files[0];
     if(!file){ alert("Select a file first!"); return; }
@@ -338,19 +329,6 @@ function loadExcel() {
     reader.onload = function(e){
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data,{type:"array"});
-        currentWorkbook = workbook; // <-- store workbook
-
-        // populate sheet dropdown
-        const sheetSelect = document.getElementById("sheetSelect");
-        sheetSelect.innerHTML = '<option value="">-- choose sheet --</option>';
-        workbook.SheetNames.forEach(name => {
-            const option = document.createElement("option");
-            option.value = name;
-            option.text = name;
-            sheetSelect.appendChild(option);
-        });
-
-        // load first sheet by default
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(firstSheet);
         if(!validateSheet(jsonData)){ alert("Excel missing required columns!"); return; }
@@ -361,37 +339,23 @@ function loadExcel() {
     reader.readAsArrayBuffer(file);
 }
 
-function loadSelectedSheet() {
-    const sheetName = document.getElementById("sheetSelect").value;
-    if (!currentWorkbook || !sheetName) return;
-    const sheet = currentWorkbook.Sheets[sheetName];
-    const jsonData = XLSX.utils.sheet_to_json(sheet);
-    if (!validateSheet(jsonData)) { alert("Missing required columns!"); return; }
-    sheetData = jsonData;
-    displaySheet(sheetData);
-}
-
-
-function displaySheet(data) {
+function displaySheet(data){
     const table = document.getElementById('sampleTable');
     table.innerHTML = `<tr>
         <th>Date</th><th>Description</th><th>Type</th><th>Amount</th>
-        <th>Account Code</th><th>Code Range</th><th>Category</th>
+        <th>Account</th><th>Code Range</th><th>Category</th>
     </tr>`;
-
     data.forEach(row => {
-        // Detect account code
-        const accName = detectAccount(row.Description); 
-        const code = accountMapping[accName] || 0;
-        const category = getAccountTypeByCode(code);
-        const range = getCodeRangeByCode(code);
+        const account = detectAccount(row.Description);
+        const category = getAccountTypeByCode(accountMapping[account] || 0);
+        const range = getCodeRange(account);
 
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${formatDate(row.Date)}</td>
                         <td>${row.Description}</td>
                         <td>${row.Type}</td>
                         <td>${row.Amount}</td>
-                        <td>${code}</td>
+                        <td>${account}</td>
                         <td>${range}</td>
                         <td>${category}</td>`;
         table.appendChild(tr);
@@ -401,52 +365,42 @@ function displaySheet(data) {
  
 
 function generateJournal(){
-    if(sheetData.length === 0){ 
-        alert("Load data first!"); 
-        return; 
-    }
-    
+    if(sheetData.length===0){ alert("Load data first!"); return; }
     journal = [];
     ledger = {};
-    const counterAccountName = document.getElementById('counterAccount').value || "Cash";
-    const counterCode = accountMapping[counterAccountName] || 0;
+    const counterAccount = document.getElementById('counterAccount').value || "Cash";
 
     sheetData.forEach(row => {
-        const accName = detectAccount(row.Description);
-        const code = accountMapping[accName] || 0;
+        const acc = detectAccount(row.Description);
+        const code = accountMapping[acc] || 0;
         const category = getAccountTypeByCode(code);
         const amount = parseFloat(row.Amount);
         const date = formatDate(row.Date);
 
-        if(row.Type.toLowerCase() === "payment"){
-            journal.push({Date: date, AccountCode: code, Category: category, Debit: amount, Credit: 0, Description: row.Description});
-            journal.push({Date: date, AccountCode: counterCode, Category: "Cash", Debit: 0, Credit: amount, Description: row.Description});
+        if(row.Type.toLowerCase()==="payment"){
+            journal.push({Date:date,Account:acc,Code:code,Category:category,Debit:amount,Credit:0,Description:row.Description});
+            journal.push({Date:date,Account:counterAccount,Code:0,Category:"Cash",Debit:0,Credit:amount,Description:row.Description});
         } else {
-            journal.push({Date: date, AccountCode: counterCode, Category: "Cash", Debit: amount, Credit: 0, Description: row.Description});
-            journal.push({Date: date, AccountCode: code, Category: category, Debit: 0, Credit: amount, Description: row.Description});
+            journal.push({Date:date,Account:counterAccount,Code:0,Category:"Cash",Debit:amount,Credit:0,Description:row.Description});
+            journal.push({Date:date,Account:acc,Code:code,Category:category,Debit:0,Credit:amount,Description:row.Description});
         }
     });
-
     displayJournal();
     alert("Journal generated!");
 }
 
-
 function displayJournal() {
     const table = document.getElementById('journalTable');
-    table.innerHTML = '<tr><th>Date</th><th>Account Code</th><th>Code Range</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th></tr>';
+    table.innerHTML = '<tr><th>Date</th><th>Account</th><th>Code Range</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th></tr>';
 
     const fragment = document.createDocumentFragment();
     journal.forEach(entry => {
-        const code = entry.Code; // already numeric in journal
-        const category = getAccountTypeByCode(code);
-        const range = getCodeRangeByCode(code);
-
+        const range = getCodeRange(entry.Account);
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${entry.Date}</td>
-                        <td>${code}</td>
+                        <td>${entry.Account}</td>
                         <td>${range}</td>
-                        <td>${category}</td>
+                        <td>${entry.Category}</td>
                         <td class="debit">${entry.Debit || ''}</td>
                         <td class="credit">${entry.Credit || ''}</td>
                         <td>${entry.Description}</td>`;
@@ -458,37 +412,28 @@ function displayJournal() {
 
 
 function generateLedger(){
-    if(journal.length === 0){ 
-        alert("Generate journal first!"); 
-        return; 
-    }
-
+    if(journal.length===0){ alert("Generate journal first!"); return; }
     ledger = {};
-
     journal.forEach(entry => {
-        const code = entry.AccountCode;
-        if(!ledger[code]) ledger[code] = [];
-        ledger[code].push({...entry});
+        if(!ledger[entry.Account]) ledger[entry.Account] = [];
+        ledger[entry.Account].push({...entry});
     });
-
     displayLedger();
     alert("General Ledger generated!");
 }
 
-
 function displayLedger() {
     const table = document.getElementById('ledgerTable');
-    table.innerHTML = '<tr><th>Account Code</th><th>Code Range</th><th>Category</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>';
+    table.innerHTML = '<tr><th>Account</th><th>Code Range</th><th>Category</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>';
 
     const fragment = document.createDocumentFragment();
-
-    for (const code in ledger) {
+    for (const acc in ledger) {
         let balance = 0;
-        ledger[code].forEach(entry => {
+        ledger[acc].forEach(entry => {
             balance += (entry.Debit || 0) - (entry.Credit || 0);
-            const range = getCodeRangeByCode(parseInt(code));
+            const range = getCodeRange(entry.Account);
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${code}</td>
+            tr.innerHTML = `<td>${entry.Account}</td>
                             <td>${range}</td>
                             <td>${entry.Category}</td>
                             <td>${entry.Date}</td>
@@ -501,15 +446,6 @@ function displayLedger() {
     }
     table.appendChild(fragment);
 }
-
-
-function getCodeRangeByCode(code){
-    for(const [type, range] of Object.entries(accountCodes)){
-        if(code >= range.min && code <= range.max) return `${range.min} - ${range.max}`;
-    }
-    return '';
-}
-
 
 function downloadJournal(){
     if(journal.length===0){ 
@@ -747,8 +683,6 @@ function openTab(evt, tabName) {
 
 </body>
 </html>
-
-
 
 
 
