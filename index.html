@@ -647,11 +647,17 @@ function openTab(evt, tabName) {
   document.getElementById(tabName).style.display = "block";
   evt.currentTarget.classList.add("active");
 }
+    // Auto-load sample preview when the page opens
+window.onload = function() {
+  populateSample();
+};
+
 </script>
 
 
 </body>
 </html>
+
 
 
 
