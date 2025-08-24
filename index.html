@@ -140,9 +140,10 @@ tr:hover {
     <label for="fileInput">Upload Excel/CSV</label>
     <input type="file" id="fileInput" accept=".xlsx,.csv">
     <button onclick="loadExcel()">Load Excel</button>
-      <label for="sheetSelect">Select Sheet</label>
+ <label for="sheetSelect">Select Sheet</label>
 <select id="sheetSelect" onchange="loadSelectedSheet()">
    <option value="">-- choose sheet --</option>
+</select>
     <button onclick="generateJournal()">Generate Journal</button>
     <button onclick="generateLedger()">Generate General Ledger</button>
     <button onclick="downloadJournal()">Download Journal</button>
@@ -325,6 +326,11 @@ function validateSheet(data){
     return true;
 }
 
+let sheetData = [];
+let journal = [];
+let ledger = {};
+let currentWorkbook = null;  // <-- added
+
 function loadExcel() {
     const file = document.getElementById('fileInput').files[0];
     if(!file){ alert("Select a file first!"); return; }
@@ -332,6 +338,19 @@ function loadExcel() {
     reader.onload = function(e){
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data,{type:"array"});
+        currentWorkbook = workbook; // <-- store workbook
+
+        // populate sheet dropdown
+        const sheetSelect = document.getElementById("sheetSelect");
+        sheetSelect.innerHTML = '<option value="">-- choose sheet --</option>';
+        workbook.SheetNames.forEach(name => {
+            const option = document.createElement("option");
+            option.value = name;
+            option.text = name;
+            sheetSelect.appendChild(option);
+        });
+
+        // load first sheet by default
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(firstSheet);
         if(!validateSheet(jsonData)){ alert("Excel missing required columns!"); return; }
@@ -342,7 +361,7 @@ function loadExcel() {
     reader.readAsArrayBuffer(file);
 }
 
-    function loadSelectedSheet() {
+function loadSelectedSheet() {
     const sheetName = document.getElementById("sheetSelect").value;
     if (!currentWorkbook || !sheetName) return;
     const sheet = currentWorkbook.Sheets[sheetName];
@@ -351,6 +370,7 @@ function loadExcel() {
     sheetData = jsonData;
     displaySheet(sheetData);
 }
+
 
 function displaySheet(data){
     const table = document.getElementById('sampleTable');
@@ -696,6 +716,7 @@ function openTab(evt, tabName) {
 
 </body>
 </html>
+
 
 
 
