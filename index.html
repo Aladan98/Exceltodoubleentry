@@ -140,6 +140,9 @@ tr:hover {
     <label for="fileInput">Upload Excel/CSV</label>
     <input type="file" id="fileInput" accept=".xlsx,.csv">
     <button onclick="loadExcel()">Load Excel</button>
+      <label for="sheetSelect">Select Sheet</label>
+<select id="sheetSelect" onchange="loadSelectedSheet()">
+   <option value="">-- choose sheet --</option>
     <button onclick="generateJournal()">Generate Journal</button>
     <button onclick="generateLedger()">Generate General Ledger</button>
     <button onclick="downloadJournal()">Download Journal</button>
@@ -337,6 +340,16 @@ function loadExcel() {
         alert("Excel loaded successfully!");
     }
     reader.readAsArrayBuffer(file);
+}
+
+    function loadSelectedSheet() {
+    const sheetName = document.getElementById("sheetSelect").value;
+    if (!currentWorkbook || !sheetName) return;
+    const sheet = currentWorkbook.Sheets[sheetName];
+    const jsonData = XLSX.utils.sheet_to_json(sheet);
+    if (!validateSheet(jsonData)) { alert("Missing required columns!"); return; }
+    sheetData = jsonData;
+    displaySheet(sheetData);
 }
 
 function displaySheet(data){
@@ -683,6 +696,7 @@ function openTab(evt, tabName) {
 
 </body>
 </html>
+
 
 
 
