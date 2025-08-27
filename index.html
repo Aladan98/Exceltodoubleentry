@@ -346,15 +346,23 @@ function populateSample() {
             range = `${accountCodes[category].min} - ${accountCodes[category].max}`;
         }
 
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${row.Date}</td>
-                        <td>${row.Description}</td>
-                        <td>${row.Type}</td>
-                        <td>${row.Amount}</td>
-                        <td>${row.Account}</td>
-                        <td>${range}</td>       <!-- General Code Range -->
-                        <td>${category}</td>`;  <!-- General Category -->
-        table.appendChild(tr);
+      const tr = document.createElement('tr');
+tr.innerHTML = `<td>${row.Date}</td>
+                <td>${row.Description}</td>
+                <td>${row.Type}</td>
+                <td>${row.Amount}</td>
+                <td>${row.Account}</td>
+                <td>${range}</td>
+                <td>${category}</td>`;
+
+// ✅ Add this here:
+if(row.Account.toLowerCase() === "misc") {
+    tr.classList.add("highlight");
+    tr.title = "Account not recognized; please review!";
+}
+
+table.appendChild(tr);
+
     });
 }
 
@@ -399,16 +407,25 @@ function displaySheet(data){
         const range = getCodeRange(account);
 
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${formatDate(row.Date)}</td>
-                        <td>${row.Description}</td>
-                        <td>${row.Type}</td>
-                        <td>${row.Amount}</td>
-                        <td>${account}</td>
-                        <td>${range}</td>
-                        <td>${category}</td>`;
-        table.appendChild(tr);
+tr.innerHTML = `<td>${formatDate(row.Date)}</td>
+                <td>${row.Description}</td>
+                <td>${row.Type}</td>
+                <td>${row.Amount}</td>
+                <td>${account}</td>
+                <td>${range}</td>
+                <td>${category}</td>`;
+
+// ✅ Add this here:
+if(account.toLowerCase() === "misc") {
+    tr.classList.add("highlight");
+    tr.title = "Account not recognized; please review!";
+}
+
+table.appendChild(tr);
+
     });
 }
+
 
  
 
@@ -752,6 +769,7 @@ function openTab(evt, tabName) {
 
 </body>
 </html>
+
 
 
 
