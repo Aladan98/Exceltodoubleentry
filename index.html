@@ -198,49 +198,60 @@ let journal = [];
 let ledger = {};
 
 const sampleData = [
-  {Date:"2025-08-01", Description:"Office Supplies Purchase", Type:"Payment", Amount:120, Account:"Stationery"},
-  {Date:"2025-08-02", Description:"Staff Lunch", Type:"Payment", Amount:45, Account:"Staff Food"},
-  {Date:"2025-08-03", Description:"Legal Consultation", Type:"Payment", Amount:300, Account:"Legal"},
-  {Date:"2025-08-04", Description:"Product Sale", Type:"Receipt", Amount:500, Account:"Sales"},
-  {Date:"2025-08-05", Description:"Car Fuel", Type:"Payment", Amount:60, Account:"Car Fix"},
-  {Date:"2025-08-06", Description:"Asset Purchased – Computer", Type:"Payment", Amount:800, Account:"Assets"},
-  {Date:"2025-08-07", Description:"Asset Sold – Printer", Type:"Receipt", Amount:200, Account:"Assets"},
-  {Date:"2025-08-08", Description:"Discount Received", Type:"Receipt", Amount:50, Account:"Discount Received"},
-  {Date:"2025-08-09", Description:"Stationery Purchase", Type:"Payment", Amount:70, Account:"Stationery"},
-  {Date:"2025-08-10", Description:"Staff Snacks", Type:"Payment", Amount:30, Account:"Staff Food"},
-  {Date:"2025-08-11", Description:"Sales Returned – Product A", Type:"Payment", Amount:100, Account:"Sales Returns"},
-  {Date:"2025-08-12", Description:"Legal Fee", Type:"Payment", Amount:250, Account:"Legal"},
-  {Date:"2025-08-13", Description:"Printing Flyers", Type:"Payment", Amount:150, Account:"Printing"},
-  {Date:"2025-08-14", Description:"Misc Expenses", Type:"Payment", Amount:60, Account:"Misc"},
-  {Date:"2025-08-15", Description:"Owner Capital Contribution", Type:"Receipt", Amount:1000, Account:"Capital"},
-  {Date:"2025-08-16", Description:"Owner Drawing", Type:"Payment", Amount:200, Account:"Drawings"},
-  {Date:"2025-08-17", Description:"Bank Interest Income", Type:"Receipt", Amount:75, Account:"Income"},
-  {Date:"2025-08-18", Description:"Loan Repayment", Type:"Payment", Amount:500, Account:"Liabilities"}
+  {Date:"2025-08-01", Description:"Office Supplies Purchase", Type:"Payment", Amount:120, Account:"office supplies"},
+  {Date:"2025-08-02", Description:"Staff Lunch", Type:"Payment", Amount:45, Account:"staff food"},
+  {Date:"2025-08-03", Description:"Legal Consultation", Type:"Payment", Amount:300, Account:"legal"},
+  {Date:"2025-08-04", Description:"Product Sale", Type:"Receipt", Amount:500, Account:"sale"},
+  {Date:"2025-08-05", Description:"Car Fuel", Type:"Payment", Amount:60, Account:"fuel"},
+  {Date:"2025-08-06", Description:"Asset Purchased – Computer", Type:"Payment", Amount:800, Account:"computer"},
+  {Date:"2025-08-07", Description:"Asset Sold – Printer", Type:"Receipt", Amount:200, Account:"computer"},
+  {Date:"2025-08-08", Description:"Discount Received", Type:"Receipt", Amount:50, Account:"discount received"},
+  {Date:"2025-08-09", Description:"Stationery Purchase", Type:"Payment", Amount:70, Account:"stationery"},
+  {Date:"2025-08-10", Description:"Staff Snacks", Type:"Payment", Amount:30, Account:"staff food"},
+  {Date:"2025-08-11", Description:"Sales Returned – Product A", Type:"Payment", Amount:100, Account:"return"},
+  {Date:"2025-08-12", Description:"Legal Fee", Type:"Payment", Amount:250, Account:"legal"},
+  {Date:"2025-08-13", Description:"Printing Flyers", Type:"Payment", Amount:150, Account:"printing"},
+  {Date:"2025-08-14", Description:"Misc Expenses", Type:"Payment", Amount:60, Account:"misc"},
+  {Date:"2025-08-15", Description:"Owner Capital Contribution", Type:"Receipt", Amount:1000, Account:"capital"},
+  {Date:"2025-08-16", Description:"Owner Drawing", Type:"Payment", Amount:200, Account:"drawing"},
+  {Date:"2025-08-17", Description:"Bank Interest Income", Type:"Receipt", Amount:75, Account:"interest"},
+  {Date:"2025-08-18", Description:"Loan Repayment", Type:"Payment", Amount:500, Account:"loan"}
 ];
 
 const accountCodes = {
-    Asset: { min: 1000, max: 1999 },
-    Expense: { min: 2000, max: 3999 },
-    Liabilities: { min: 4000, max: 4999 },
-    Income: { min: 5000, max: 5999 },
-    Capital: { min: 6000, max: 6999 },
+    "Asset": { min: 1000, max: 1999, description: "Current & Fixed Assets" },
+  "Liability": { min: 2000, max: 2999, description: "Current & Long-term Liabilities" },
+  "Equity": { min: 3000, max: 3999, description: "Owner's Equity & Capital" },
+  "Revenue": { min: 4000, max: 4499, description: "Operating & Other Revenue" },
+  "Contra Revenue": { min: 4500, max: 4599, description: "Returns & Discounts" },
+  "Operating Expense": { min: 5000, max: 5999, description: "Direct Operating Costs" },
+  "Administrative Expense": { min: 6000, max: 6999, description: "Admin & Overhead Costs" }
 };
 
 const accountMapping = {
-    "Stationery": 2001,
-    "Staff Food": 2002,
-    "Legal": 2003,
-    "Printing": 2004,
-    "Car Fix": 2005,
-    "Assets": 1001,
-    "Sales": 5001,
-    "Sales Returns": 2006,
-    "Discount Received": 5002,
-    "Misc": 2007,
-    "Capital": 6001,
-    "Drawings": 2008,
-    "Income": 5003,
-    "Liabilities": 4001
+   "office supplies": 5000,
+  "stationery": 5010,
+  "staff food": 5400,
+  "staff lunch": 5400,
+  "legal": 5300,
+  "fuel": 5500,
+  "printing": 5600,
+  "computer": 1500,
+  "laptop": 1500,
+  "furniture": 1600,
+  "sale": 4000,
+  "income": 4000,
+  "return": 4500,
+  "discount received": 4300,
+  "capital": 3000,
+  "drawing": 3200,
+  "loan": 2500,
+  "bank": 1010,
+  "cash": 1000,
+  "interest": 4200,
+  "rent": 5100,
+  "electricity": 5200,
+  "misc": 5900
 };
 
 // --- Detect Account safely ---
@@ -632,11 +643,13 @@ function downloadSample() {
 
     // Prepare legend data
     const legendData = [
-        {Category: "Assets", CodeRange: "1000-1999"},
-        {Category: "Expense", CodeRange: "2000-3999"},
-        {Category: "Liabilities", CodeRange: "4000-4999"},
-        {Category: "Income", CodeRange: "5000-5999"},
-        {Category: "Capital", CodeRange: "6000-6999"}
+       {Category: "Asset", CodeRange: "1000-1999"},
+    {Category: "Liability", CodeRange: "2000-2999"},
+    {Category: "Equity", CodeRange: "3000-3999"},
+    {Category: "Revenue", CodeRange: "4000-4499"},
+    {Category: "Contra Revenue", CodeRange: "4500-4599"},
+    {Category: "Operating Expense", CodeRange: "5000-5999"},
+    {Category: "Administrative Expense", CodeRange: "6000-6999"}
     ];
 
     // Create worksheet for legend
@@ -686,6 +699,7 @@ function openTab(evt, tabName) {
 
 </body>
 </html>
+
 
 
 
