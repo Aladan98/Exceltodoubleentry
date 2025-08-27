@@ -218,30 +218,75 @@ const sampleData = [
   {Date:"2025-08-18", Description:"Loan Repayment", Type:"Payment", Amount:500, Account:"Liabilities"}
 ];
 
-const accountCodes = {
-    Asset: { min: 1000, max: 1999 },
-    Expense: { min: 2000, max: 3999 },
-    Liabilities: { min: 4000, max: 4999 },
-    Income: { min: 5000, max: 5999 },
-    Capital: { min: 6000, max: 6999 },
+const improvedAccountCodes = {
+  Asset: { min: 1000, max: 1999, description: "Current & Fixed Assets" },
+  Liability: { min: 2000, max: 2999, description: "Current & Long-term Liabilities" },
+  Equity: { min: 3000, max: 3999, description: "Owner's Equity & Capital" },
+  Revenue: { min: 4000, max: 4499, description: "Operating & Other Revenue" },
+  "Contra Revenue": { min: 4500, max: 4599, description: "Returns & Discounts" },
+  "Operating Expense": { min: 5000, max: 5999, description: "Direct Operating Costs" },
+  "Administrative Expense": { min: 6000, max: 6999, description: "Admin & Overhead Costs" }
 };
 
-const accountMapping = {
-    "Stationery": 2001,
-    "Staff Food": 2002,
-    "Legal": 2003,
-    "Printing": 2004,
-    "Car Fix": 2005,
-    "Assets": 1001,
-    "Sales": 5001,
-    "Sales Returns": 2006,
-    "Discount Received": 5002,
-    "Misc": 2007,
-    "Capital": 6001,
-    "Drawings": 2008,
-    "Income": 5003,
-    "Liabilities": 4001
+const improvedAccountMapping = {
+  "office supplies": 5000, "stationery": 5010, "supplies": 5000, "paper": 5010, "pens": 5010,
+  "staff food": 5400, "staff meal": 5400, "staff lunch": 5400, "staff dinner": 5400, "lunch": 5400, "snacks": 5400, "coffee": 5400,
+  "legal": 5300, "lawyer": 5300, "attorney": 5300, "consultation": 5300, "professional": 5300, "audit": 5300,
+  "fuel": 5500, "petrol": 5500, "gas": 5500, "car": 5500, "transport": 5500, "taxi": 5500, "uber": 5500, "travel": 5500,
+  "printing": 5600, "flyers": 5600, "brochure": 5600, "marketing": 5600, "advertising": 5600,
+  "computer": 1500, "laptop": 1500, "equipment": 1500, "furniture": 1600, "asset": 1500, "purchase": 1500,
+  "sale": 4000, "income": 4000, "revenue": 4000, "service": 4100,
+  "return": 4500, "refund": 4500, "discount received": 4300,
+  "capital": 3000, "investment": 3000, "drawing": 3200, "withdrawal": 3200,
+  "loan": 2500, "debt": 2500, "payable": 2000,
+  "bank": 1010, "cash": 1000, "interest": 4200, "bank charges": 6200,
+  "rent": 5100, "electricity": 5200, "water": 5200, "internet": 5200, "phone": 5200,
+  "misc": 5900, "miscellaneous": 5900, "other": 5900
 };
+
+
+
+    const standardChartOfAccounts = {
+  "1000": { name: "Cash in Hand", category: "Current Assets", type: "Asset" },
+  "1010": { name: "Cash at Bank", category: "Current Assets", type: "Asset" },
+  "1020": { name: "Petty Cash", category: "Current Assets", type: "Asset" },
+  "1100": { name: "Accounts Receivable", category: "Current Assets", type: "Asset" },
+  "1200": { name: "Inventory", category: "Current Assets", type: "Asset" },
+  "1300": { name: "Prepaid Expenses", category: "Current Assets", type: "Asset" },
+  "1500": { name: "Equipment", category: "Fixed Assets", type: "Asset" },
+  "1510": { name: "Accumulated Depreciation - Equipment", category: "Fixed Assets", type: "Asset" },
+  "1600": { name: "Furniture & Fixtures", category: "Fixed Assets", type: "Asset" },
+  "1610": { name: "Accumulated Depreciation - Furniture", category: "Fixed Assets", type: "Asset" },
+  "2000": { name: "Accounts Payable", category: "Current Liabilities", type: "Liability" },
+  "2100": { name: "Accrued Expenses", category: "Current Liabilities", type: "Liability" },
+  "2200": { name: "Short-term Loans", category: "Current Liabilities", type: "Liability" },
+  "2500": { name: "Long-term Loans", category: "Long-term Liabilities", type: "Liability" },
+  "3000": { name: "Owner's Capital", category: "Owner's Equity", type: "Equity" },
+  "3100": { name: "Retained Earnings", category: "Owner's Equity", type: "Equity" },
+  "3200": { name: "Owner's Drawings", category: "Owner's Equity", type: "Equity" },
+  "4000": { name: "Sales Revenue", category: "Operating Revenue", type: "Revenue" },
+  "4100": { name: "Service Revenue", category: "Operating Revenue", type: "Revenue" },
+  "4200": { name: "Interest Income", category: "Other Revenue", type: "Revenue" },
+  "4300": { name: "Discount Received", category: "Other Revenue", type: "Revenue" },
+  "4500": { name: "Sales Returns", category: "Contra Revenue", type: "Contra Revenue" },
+  "4510": { name: "Sales Discounts", category: "Contra Revenue", type: "Contra Revenue" },
+  "5000": { name: "Office Supplies", category: "Operating Expenses", type: "Expense" },
+  "5010": { name: "Stationery", category: "Operating Expenses", type: "Expense" },
+  "5100": { name: "Rent Expense", category: "Operating Expenses", type: "Expense" },
+  "5200": { name: "Utilities", category: "Operating Expenses", type: "Expense" },
+  "5300": { name: "Legal & Professional", category: "Operating Expenses", type: "Expense" },
+  "5400": { name: "Staff Meals", category: "Operating Expenses", type: "Expense" },
+  "5500": { name: "Travel & Transport", category: "Operating Expenses", type: "Expense" },
+  "5600": { name: "Printing & Marketing", category: "Operating Expenses", type: "Expense" },
+  "5700": { name: "Depreciation Expense", category: "Operating Expenses", type: "Expense" },
+  "5800": { name: "Bad Debt Expense", category: "Operating Expenses", type: "Expense" },
+  "5900": { name: "Miscellaneous Expenses", category: "Operating Expenses", type: "Expense" },
+  "6000": { name: "Salaries & Wages", category: "Administrative Expenses", type: "Expense" },
+  "6100": { name: "Insurance", category: "Administrative Expenses", type: "Expense" },
+  "6200": { name: "Bank Charges", category: "Administrative Expenses", type: "Expense" },
+  "6300": { name: "Interest Expense", category: "Administrative Expenses", type: "Expense" }
+};
+
 
 // --- Detect Account safely ---
 function detectAccount(description) {
@@ -610,7 +655,7 @@ function getCodeRange(account) {
     return '';
 }
 function downloadSample() {
-    // Prepare sample data with code ranges and categories
+    // 1️⃣ Sample Data Sheet
     const sampleDataWithCodes = sampleData.map(row => {
         const category = getAccountTypeByCode(accountMapping[row.Account] || 0);
         const range = getCodeRange(row.Account);
@@ -624,13 +669,9 @@ function downloadSample() {
             Category: category
         };
     });
+    const wsSample = XLSX.utils.json_to_sheet(sampleDataWithCodes);
 
-    // Create worksheet for sample data
-    const wsSample = XLSX.utils.json_to_sheet(sampleDataWithCodes, { 
-        header: ["Date", "Description", "Type", "Amount", "Account", "CodeRange", "Category"]
-    });
-
-    // Prepare legend data
+    // 2️⃣ Legend Sheet
     const legendData = [
         {Category: "Assets", CodeRange: "1000-1999"},
         {Category: "Expense", CodeRange: "2000-3999"},
@@ -638,20 +679,45 @@ function downloadSample() {
         {Category: "Income", CodeRange: "5000-5999"},
         {Category: "Capital", CodeRange: "6000-6999"}
     ];
+    const wsLegend = XLSX.utils.json_to_sheet(legendData);
 
-    // Create worksheet for legend
-    const wsLegend = XLSX.utils.json_to_sheet(legendData, {
-        header: ["Category", "CodeRange"]
-    });
+    // 3️⃣ Chart of Accounts Sheet
+    const chartData = Object.entries(standardChartOfAccounts).map(([code, details]) => ({
+        Code: code,
+        Name: details.name,
+        Category: details.category,
+        Type: details.type
+    }));
+    const wsChart = XLSX.utils.json_to_sheet(chartData);
 
-    // Create workbook and append sheets
+    // 4️⃣ Improved Account Codes Sheet
+    const improvedCodesData = Object.entries(improvedAccountCodes).map(([type, info]) => ({
+        Type: type,
+        MinCode: info.min,
+        MaxCode: info.max,
+        Description: info.description
+    }));
+    const wsImprovedCodes = XLSX.utils.json_to_sheet(improvedCodesData);
+
+    // 5️⃣ Improved Account Mapping Sheet
+    const improvedMappingData = Object.entries(improvedAccountMapping).map(([keyword, code]) => ({
+        Keyword: keyword,
+        AccountCode: code
+    }));
+    const wsImprovedMapping = XLSX.utils.json_to_sheet(improvedMappingData);
+
+    // 6️⃣ Create Workbook and Append All Sheets
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, wsSample, "Sample Data");
     XLSX.utils.book_append_sheet(wb, wsLegend, "Code Legend");
+    XLSX.utils.book_append_sheet(wb, wsChart, "Chart of Accounts");
+    XLSX.utils.book_append_sheet(wb, wsImprovedCodes, "Improved Codes");
+    XLSX.utils.book_append_sheet(wb, wsImprovedMapping, "Improved Mapping");
 
-    // Export file
-    XLSX.writeFile(wb, "SamplePettyCash.xlsx");
+    // 7️⃣ Export
+    XLSX.writeFile(wb, "SamplePettyCash_FullGuide.xlsx");
 }
+
 
 
 function openTab(evt, tabName) {
@@ -686,6 +752,7 @@ function openTab(evt, tabName) {
 
 </body>
 </html>
+
 
 
 
