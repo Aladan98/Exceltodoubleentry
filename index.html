@@ -56,11 +56,12 @@ header {
     box-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
 main {
-    display: flex;
+    display: none; /* Hide initially */
     flex-wrap: wrap;
     padding: 20px;
     gap: 20px;
 }
+
 .sidebar {
     width: 280px;
     background: #1a1a1a;
@@ -181,7 +182,7 @@ tr:hover {
     </button>
 </div>
 
-<header>LEDGIOX</header>
+<header style="display:none;">LEDGIOX</header>
 <main>
   <div class="sidebar">
     <label for="counterAccount">Counter Account</label>
@@ -732,14 +733,18 @@ function openTab(evt, tabName) {
 }
 
 
- window.onload = function() {
+window.onload = function() {
     populateSample();
     document.getElementById("sampleTab").style.display = "block"; // Show first tab
 };
 
 document.getElementById('getStartedBtn').addEventListener('click', () => {
+    // Hide welcome page
     document.getElementById('welcomePage').style.display = 'none';
+
+    // Show main content and header
     document.querySelector('main').style.display = 'flex';
+    document.querySelector('header').style.display = 'block';
 });
 
 
@@ -749,6 +754,7 @@ document.getElementById('getStartedBtn').addEventListener('click', () => {
 
 </body>
 </html>
+
 
 
 
