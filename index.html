@@ -1,14 +1,4 @@
-<!-- Welcome Page -->
-<div id="welcomePage" style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background:#121212; color:#00e676; text-align:center; padding:20px;">
-    <h1 style="font-size:3rem; margin-bottom:20px;">Welcome to LEDGIOX</h1>
-    <p style="font-size:1.2rem; margin-bottom:30px; max-width:400px;">
-        LEDGIOX helps you quickly convert your Excel or CSV data into Journal Entries and a General Ledger. 
-        Upload, generate, and export for platforms like Zoho, QuickBooks, or Sage.
-    </p>
-    <button id="getStartedBtn" style="padding:15px 30px; font-size:1.2rem; background:#00e676; color:#121212; border:none; border-radius:10px; cursor:pointer;">
-        Get Started
-    </button>
-</div>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -23,6 +13,39 @@ body {
     background: #121212;
     color: #e0e0e0;
     margin: 0;
+}
+    /* Welcome Page Styles */
+#welcomePage {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #121212;
+    color: #00e676;
+    text-align: center;
+    padding: 20px;
+}
+#welcomePage h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+#welcomePage p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    max-width: 400px;
+}
+#welcomePage button {
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    background: #00e676;
+    color: #121212;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+#welcomePage button:hover {
+    background: #00c853;
 }
 header {
     background: #1f1f1f;
@@ -146,6 +169,17 @@ tr:hover {
 </style>
 </head>
 <body>
+    <!-- Welcome Page -->
+<div id="welcomePage" style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background:#121212; color:#00e676; text-align:center; padding:20px;">
+    <h1 style="font-size:3rem; margin-bottom:20px;">Welcome to LEDGIOX</h1>
+    <p style="font-size:1.2rem; margin-bottom:30px; max-width:400px;">
+        LEDGIOX helps you quickly convert your Excel or CSV data into Journal Entries and a General Ledger. 
+        Upload, generate, and export for platforms like Zoho, QuickBooks, or Sage.
+    </p>
+    <button id="getStartedBtn" style="padding:15px 30px; font-size:1.2rem; background:#00e676; color:#121212; border:none; border-radius:10px; cursor:pointer;">
+        Get Started
+    </button>
+</div>
 
 <header>LEDGIOX</header>
 <main>
@@ -715,6 +749,7 @@ document.getElementById('getStartedBtn').addEventListener('click', () => {
 
 </body>
 </html>
+
 
 
 
