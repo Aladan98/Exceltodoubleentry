@@ -374,24 +374,81 @@ const accountMapping = {
     "extraordinary losses": 8200
 };
 
-// --- Detect Account safely ---
 function detectAccount(description) {
-    const lower = description ? description.toLowerCase() : "";
+    if (!description) return "Misc";
+    const lower = description.toLowerCase().replace(/\s+/g, ' ').trim();
     for (const acc in accountMapping) {
-        if (lower.includes(acc.toLowerCase())) return acc;
+        const accNormalized = acc.toLowerCase().replace(/\s+/g, ' ').trim();
+        if (lower.includes(accNormalized)) return acc;
     }
     return "Misc";
 }
 
-// --- Get category from code ---
+// --- Robust getCodeRange ---
+function getCodeRange(account, display = true) {
+    if (!account) return '';
+    const code = accountMapping[account] || 0;
+    const category = getAccountTypeByCode(code);
+    if (!category || !accountCodes[category]) return '';
+
+    if (display && legendData) {
+        const legendEntry = legendData.find(e => e.Account.toLowerCase() === account.toLowerCase());
+        if (legendEntry) return legendEntry.CodeRange;
+    }
+
+    return `${accountCodes[category].min} - ${accountCodes[category].max}`;
+}
+
+// --- Robust getAccountTypeByCode ---
 function getAccountTypeByCode(code) {
+    if (!code || isNaN(code)) return "Unknown";
     for (const [type, range] of Object.entries(accountCodes)) {
         if (code >= range.min && code <= range.max) return type;
     }
     return "Unknown";
 }
 
-// --- Format Excel/Date ---
+// --- Populate Sample ---
+function populateSample() {
+    const table = document.getElementById('sampleTable');
+    table.innerHTML = `<tr>
+        <th>Date</th><th>Description</th><th>Type</th><th>Amount</th>
+        <th>Account</th><th>Code Range</th><th>Category</th>
+    </tr>`;
+    sampleData.forEach(row => {
+        const account = detectAccount(row.Account);
+        const code = accountMapping[account] || 0;
+        const category = getAccountTypeByCode(code);
+        const range = getCodeRange(account);
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${row.Date}</td>
+                        <td>${row.Description}</td>
+                        <td>${row.Type}</td>
+                        <td>${row.Amount}</td>
+                        <td>${account}</td>
+                        <td>${range}</td>
+                        <td>${category}</td>`;
+        table.appendChild(tr);
+    });
+}
+
+// --- Get Started ---
+document.getElementById('getStartedBtn').addEventListener('click', () => {
+    document.getElementById('welcomePage').style.display = 'none';
+    document.querySelector('main').style.display = 'flex';
+    document.querySelector('header').style.display = 'block';
+
+    document.getElementById("sampleTab").style.display = "block";
+
+    const tabButtons = document.getElementsByClassName("tabButton");
+    for (let i = 0; i < tabButtons.length; i++) tabButtons[i].classList.remove("active");
+    tabButtons[0].classList.add("active");
+
+    populateSample();
+});
+
+// --- Format Excel Date ---
 function formatDate(excelDate) {
     if (!excelDate) return "";
     if (!isNaN(excelDate)) {
@@ -408,40 +465,6 @@ function formatDate(excelDate) {
     }
     const fallback = new Date(excelDate);
     return !isNaN(fallback) ? fallback.toISOString().split("T")[0] : "";
-}
-
-// --- Populate sample table ---
-// --- Populate Sample Table with General Code Range ---
-function populateSample() {
-    const table = document.getElementById('sampleTable');
-    table.innerHTML = `<tr>
-        <th>Date</th>
-        <th>Description</th>
-        <th>Type</th>
-        <th>Amount</th>
-        <th>Account</th>
-        <th>Code Range</th>
-        <th>Category</th>
-    </tr>`;
-
-    sampleData.forEach(row => {
-        const code = accountMapping[row.Account] || 0;
-        const category = getAccountTypeByCode(code);
-        let range = '';
-        if(category && accountCodes[category]){
-            range = `${accountCodes[category].min} - ${accountCodes[category].max}`;
-        }
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${row.Date}</td>
-                        <td>${row.Description}</td>
-                        <td>${row.Type}</td>
-                        <td>${row.Amount}</td>
-                        <td>${row.Account}</td>
-                        <td>${range}</td>       <!-- General Code Range -->
-                        <td>${category}</td>`;  <!-- General Category -->
-        table.appendChild(tr);
-    });
 }
 
 
@@ -846,11 +869,10 @@ function downloadSample() {
 };
 
 
-    // Create worksheet for legend
-    const wsLegend = XLSX.utils.json_to_sheet(legendData, {
-     header: ["Category", "CodeRange", "Account"]
+   const wsLegend = XLSX.utils.json_to_sheet(legendData, {
+    header: ["Category", "CodeRange", "Account"]
 
-    });
+ });
 
     // Create workbook and append sheets
     const wb = XLSX.utils.book_new();
@@ -902,6 +924,7 @@ document.getElementById('getStartedBtn').addEventListener('click', () => {
 
 </body>
 </html>
+
 
 
 
