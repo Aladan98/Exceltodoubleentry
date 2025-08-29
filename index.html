@@ -269,40 +269,109 @@ const sampleData = [
 ];
 
 const accountCodes = {
-    "Asset": { min: 1000, max: 1999, description: "Current & Fixed Assets" },
-  "Liability": { min: 2000, max: 2999, description: "Current & Long-term Liabilities" },
-  "Equity": { min: 3000, max: 3999, description: "Owner's Equity & Capital" },
-  "Revenue": { min: 4000, max: 4499, description: "Operating & Other Revenue" },
-  "Contra Revenue": { min: 4500, max: 4599, description: "Returns & Discounts" },
-  "Operating Expense": { min: 5000, max: 5999, description: "Direct Operating Costs" },
-  "Administrative Expense": { min: 6000, max: 6999, description: "Admin & Overhead Costs" }
+   "Asset": { min: 1000, max: 1999, description: "Current & Fixed Assets" },
+    "Liability": { min: 2000, max: 2999, description: "Current & Long-term Liabilities" },
+    "Equity": { min: 3000, max: 3999, description: "Owner's Equity & Capital" },
+    "Revenue": { min: 4000, max: 4499, description: "Operating Revenue" },
+    "Contra Revenue": { min: 4500, max: 4599, description: "Returns & Discounts" },
+    "Cost of Sales": { min: 5000, max: 5299, description: "Cost of Goods Sold / Direct Costs" },
+    "Operating Expense": { min: 5300, max: 5999, description: "Operating Expenses" },
+    "Administrative Expense": { min: 6000, max: 6999, description: "Admin & General Expenses" },
+    "Other Income/Expense": { min: 7000, max: 7999, description: "Non-operating / Other Income & Expenses" },
+    "Extraordinary": { min: 8000, max: 8999, description: "Extraordinary Items" }
 };
 
 const accountMapping = {
-   "office supplies": 5000,
-  "stationery": 5010,
-  "staff food": 5400,
-  "staff lunch": 5400,
-  "legal": 5300,
-  "fuel": 5500,
-  "printing": 5600,
-  "computer": 1500,
-  "laptop": 1500,
-  "furniture": 1600,
-  "sale": 4000,
-  "income": 4000,
-  "return": 4500,
-  "discount received": 4300,
-  "capital": 3000,
-  "drawing": 3200,
-  "loan": 2500,
-  "bank": 1010,
-  "cash": 1000,
-  "interest": 4200,
-  "rent": 5100,
-  "electricity": 5200,
-  "misc": 5900
-};
+  // Assets
+    "cash": 1000,
+    "bank": 1010,
+    "petty cash": 1020,
+    "accounts receivable": 1100,
+    "allowance doubtful accounts": 1110,
+    "inventory": 1200,
+    "raw materials": 1210,
+    "work in progress": 1220,
+    "finished goods": 1230,
+    "prepaid expenses": 1300,
+    "fixed assets": 1400,
+    "accumulated depreciation": 1410,
+    "buildings": 1420,
+    "vehicles": 1430,
+    "office equipment": 1440,
+    "intangible assets": 1500,
+    "other current assets": 1600,
+
+    // Liabilities
+    "accounts payable": 2000,
+    "credit cards": 2100,
+    "accrued expenses": 2200,
+    "taxes payable": 2300,
+    "short term loans": 2400,
+    "long term debt": 2500,
+    "employee benefits payable": 2600,
+    "unearned revenue": 2700,
+    "other current liabilities": 2800,
+
+    // Equity
+    "capital": 3000,
+    "retained earnings": 3100,
+    "drawing": 3200,
+    "additional paid-in capital": 3300,
+    "reserves": 3400,
+    "treasury shares": 3500,
+
+    // Revenue
+    "sale": 4000,
+    "product sales": 4010,
+    "service revenue": 4020,
+    "rental income": 4100,
+    "interest": 4200,
+    "other operating income": 4300,
+
+    // Contra Revenue
+    "return": 4500,
+    "discount allowed": 4510,
+
+    // Cost of Sales
+    "cost of goods sold": 5000,
+    "direct materials": 5100,
+    "raw material purchases": 5110,
+    "direct labor": 5120,
+    "manufacturing overhead": 5200,
+    "factory rent": 5210,
+    "factory utilities": 5220,
+
+    // Operating Expenses
+    "salaries & wages": 5300,
+    "employee benefits": 5310,
+    "rent expense": 5400,
+    "utilities": 5410,
+    "electricity": 5411,
+    "water": 5412,
+    "internet/communication": 5413,
+    "insurance": 5500,
+    "depreciation expense": 5600,
+    "marketing & advertising": 5700,
+    "office supplies": 5800,
+    "travel & entertainment": 5900,
+
+    // Administrative & General Expenses
+    "legal & professional fees": 6000,
+    "training & development": 6100,
+    "repairs & maintenance": 6200,
+    "communication expense": 6300,
+    "bank charges": 6400,
+    "software subscriptions": 6500,
+    "miscellaneous expense": 6600,
+
+    // Other Income & Expenses
+    "interest expense": 7100,
+    "gain/loss on asset disposal": 7200,
+    "foreign exchange gain/loss": 7300,
+
+    // Extraordinary / Non-Operating
+    "extraordinary gains": 8100,
+    "extraordinary losses": 8200
 
 // --- Detect Account safely ---
 function detectAccount(description) {
@@ -340,8 +409,6 @@ function formatDate(excelDate) {
     return !isNaN(fallback) ? fallback.toISOString().split("T")[0] : "";
 }
 
-// --- Populate sample table ---
-// --- Populate Sample Table with General Code Range ---
 function populateSample() {
     const table = document.getElementById('sampleTable');
     table.innerHTML = `<tr>
@@ -355,24 +422,25 @@ function populateSample() {
     </tr>`;
 
     sampleData.forEach(row => {
-        const code = accountMapping[row.Account] || 0;
+        const acc = detectAccount(row.Account || row.Description);
+        const code = accountMapping[acc] || 0;
         const category = getAccountTypeByCode(code);
-        let range = '';
-        if(category && accountCodes[category]){
-            range = `${accountCodes[category].min} - ${accountCodes[category].max}`;
-        }
+        const range = category && accountCodes[category] ? 
+                      `${accountCodes[category].min} - ${accountCodes[category].max}` : '';
 
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${row.Date}</td>
                         <td>${row.Description}</td>
                         <td>${row.Type}</td>
                         <td>${row.Amount}</td>
-                        <td>${row.Account}</td>
-                        <td>${range}</td>       <!-- General Code Range -->
-                        <td>${category}</td>`;  <!-- General Category -->
+                        <td>${acc}</td>
+                        <td>${range}</td>
+                        <td>${category}</td>`;
         table.appendChild(tr);
     });
 }
+
+
 
 
 
@@ -673,14 +741,17 @@ function getCodeRange(account) {
 function downloadSample() {
     // Prepare sample data with code ranges and categories
     const sampleDataWithCodes = sampleData.map(row => {
-        const category = getAccountTypeByCode(accountMapping[row.Account] || 0);
-        const range = getCodeRange(row.Account);
+        const acc = detectAccount(row.Account || row.Description);
+        const code = accountMapping[acc] || 0;
+        const category = getAccountTypeByCode(code);
+        const range = category && accountCodes[category] ? 
+                      `${accountCodes[category].min} - ${accountCodes[category].max}` : '';
         return {
             Date: row.Date,
             Description: row.Description,
             Type: row.Type,
             Amount: row.Amount,
-            Account: row.Account,
+            Account: acc,
             CodeRange: range,
             Category: category
         };
@@ -691,30 +762,26 @@ function downloadSample() {
         header: ["Date", "Description", "Type", "Amount", "Account", "CodeRange", "Category"]
     });
 
-    // Prepare legend data
-    const legendData = [
-       {Category: "Asset", CodeRange: "1000-1999"},
-    {Category: "Liability", CodeRange: "2000-2999"},
-    {Category: "Equity", CodeRange: "3000-3999"},
-    {Category: "Revenue", CodeRange: "4000-4499"},
-    {Category: "Contra Revenue", CodeRange: "4500-4599"},
-    {Category: "Operating Expense", CodeRange: "5000-5999"},
-    {Category: "Administrative Expense", CodeRange: "6000-6999"}
-    ];
+    // Prepare full professional COA legend
+    const legendData = [];
+    for (const [category, info] of Object.entries(accountCodes)) {
+        legendData.push({Category: category, CodeRange: `${info.min}-${info.max}`, Description: info.description});
+    }
 
     // Create worksheet for legend
     const wsLegend = XLSX.utils.json_to_sheet(legendData, {
-        header: ["Category", "CodeRange"]
+        header: ["Category", "CodeRange", "Description"]
     });
 
     // Create workbook and append sheets
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, wsSample, "Sample Data");
-    XLSX.utils.book_append_sheet(wb, wsLegend, "Code Legend");
+    XLSX.utils.book_append_sheet(wb, wsLegend, "COA Legend");
 
     // Export file
-    XLSX.writeFile(wb, "SamplePettyCash.xlsx");
+    XLSX.writeFile(wb, "SampleProfessionalCOA.xlsx");
 }
+
 
 
 function openTab(evt, tabName) {
@@ -757,6 +824,7 @@ document.getElementById('getStartedBtn').addEventListener('click', () => {
 
 </body>
 </html>
+
 
 
 
