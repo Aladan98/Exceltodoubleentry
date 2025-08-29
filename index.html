@@ -764,95 +764,86 @@ function downloadSample() {
     // Prepare legend data
     const legendData = [
      // Assets
-    "cash": { code: 1000, category: "Asset" },
-    "bank": { code: 1010, category: "Asset" },
-    "petty cash": { code: 1020, category: "Asset" },
-    "accounts receivable": { code: 1100, category: "Asset" },
-    "allowance doubtful accounts": { code: 1110, category: "Asset" },
-    "inventory": { code: 1200, category: "Asset" },
-    "raw materials": { code: 1210, category: "Asset" },
-    "work in progress": { code: 1220, category: "Asset" },
-    "finished goods": { code: 1230, category: "Asset" },
-    "prepaid expenses": { code: 1300, category: "Asset" },
-    "fixed assets": { code: 1400, category: "Asset" },
-    "accumulated depreciation": { code: 1410, category: "Asset" },
-    "buildings": { code: 1420, category: "Asset" },
-    "vehicles": { code: 1430, category: "Asset" },
-    "office equipment": { code: 1440, category: "Asset" },
-    "intangible assets": { code: 1500, category: "Asset" },
-    "other current assets": { code: 1600, category: "Asset" },
+   const legendData = [
+  { Category: "Asset", CodeRange: "1000-1000", Account: "cash" },
+  { Category: "Asset", CodeRange: "1010-1010", Account: "bank" },
+  { Category: "Asset", CodeRange: "1020-1020", Account: "petty cash" },
+  { Category: "Asset", CodeRange: "1100-1100", Account: "accounts receivable" },
+  { Category: "Asset", CodeRange: "1110-1110", Account: "allowance doubtful accounts" },
+  { Category: "Asset", CodeRange: "1200-1200", Account: "inventory" },
+  { Category: "Asset", CodeRange: "1210-1210", Account: "raw materials" },
+  { Category: "Asset", CodeRange: "1220-1220", Account: "work in progress" },
+  { Category: "Asset", CodeRange: "1230-1230", Account: "finished goods" },
+  { Category: "Asset", CodeRange: "1300-1300", Account: "prepaid expenses" },
+  { Category: "Asset", CodeRange: "1400-1400", Account: "fixed assets" },
+  { Category: "Asset", CodeRange: "1410-1410", Account: "accumulated depreciation" },
+  { Category: "Asset", CodeRange: "1420-1420", Account: "buildings" },
+  { Category: "Asset", CodeRange: "1430-1430", Account: "vehicles" },
+  { Category: "Asset", CodeRange: "1440-1440", Account: "office equipment" },
+  { Category: "Asset", CodeRange: "1500-1500", Account: "intangible assets" },
+  { Category: "Asset", CodeRange: "1600-1600", Account: "other current assets" },
 
-    // Liabilities
-    "accounts payable": { code: 2000, category: "Liability" },
-    "credit cards": { code: 2100, category: "Liability" },
-    "accrued expenses": { code: 2200, category: "Liability" },
-    "taxes payable": { code: 2300, category: "Liability" },
-    "short term loans": { code: 2400, category: "Liability" },
-    "long term debt": { code: 2500, category: "Liability" },
-    "employee benefits payable": { code: 2600, category: "Liability" },
-    "unearned revenue": { code: 2700, category: "Liability" },
-    "other current liabilities": { code: 2800, category: "Liability" },
+  { Category: "Liability", CodeRange: "2000-2000", Account: "accounts payable" },
+  { Category: "Liability", CodeRange: "2100-2100", Account: "credit cards" },
+  { Category: "Liability", CodeRange: "2200-2200", Account: "accrued expenses" },
+  { Category: "Liability", CodeRange: "2300-2300", Account: "taxes payable" },
+  { Category: "Liability", CodeRange: "2400-2400", Account: "short term loans" },
+  { Category: "Liability", CodeRange: "2500-2500", Account: "long term debt" },
+  { Category: "Liability", CodeRange: "2600-2600", Account: "employee benefits payable" },
+  { Category: "Liability", CodeRange: "2700-2700", Account: "unearned revenue" },
+  { Category: "Liability", CodeRange: "2800-2800", Account: "other current liabilities" },
 
-    // Equity
-    "capital": { code: 3000, category: "Equity" },
-    "retained earnings": { code: 3100, category: "Equity" },
-    "drawing": { code: 3200, category: "Equity" },
-    "additional paid-in capital": { code: 3300, category: "Equity" },
-    "reserves": { code: 3400, category: "Equity" },
-    "treasury shares": { code: 3500, category: "Equity" },
+  { Category: "Equity", CodeRange: "3000-3000", Account: "capital" },
+  { Category: "Equity", CodeRange: "3100-3100", Account: "retained earnings" },
+  { Category: "Equity", CodeRange: "3200-3200", Account: "drawing" },
+  { Category: "Equity", CodeRange: "3300-3300", Account: "additional paid-in capital" },
+  { Category: "Equity", CodeRange: "3400-3400", Account: "reserves" },
+  { Category: "Equity", CodeRange: "3500-3500", Account: "treasury shares" },
 
-    // Revenue
-    "sale": { code: 4000, category: "Revenue" },
-    "product sales": { code: 4010, category: "Revenue" },
-    "service revenue": { code: 4020, category: "Revenue" },
-    "rental income": { code: 4100, category: "Revenue" },
-    "interest": { code: 4200, category: "Revenue" },
-    "other operating income": { code: 4300, category: "Revenue" },
+  { Category: "Revenue", CodeRange: "4000-4000", Account: "sale" },
+  { Category: "Revenue", CodeRange: "4010-4010", Account: "product sales" },
+  { Category: "Revenue", CodeRange: "4020-4020", Account: "service revenue" },
+  { Category: "Revenue", CodeRange: "4100-4100", Account: "rental income" },
+  { Category: "Revenue", CodeRange: "4200-4200", Account: "interest" },
+  { Category: "Revenue", CodeRange: "4300-4300", Account: "other operating income" },
 
-    // Contra Revenue
-    "return": { code: 4500, category: "Contra Revenue" },
-    "discount allowed": { code: 4510, category: "Contra Revenue" },
+  { Category: "Contra Revenue", CodeRange: "4500-4500", Account: "return" },
+  { Category: "Contra Revenue", CodeRange: "4510-4510", Account: "discount allowed" },
 
-    // Cost of Sales
-    "cost of goods sold": { code: 5000, category: "Operating Expense" },
-    "direct materials": { code: 5100, category: "Operating Expense" },
-    "raw material purchases": { code: 5110, category: "Operating Expense" },
-    "direct labor": { code: 5120, category: "Operating Expense" },
-    "manufacturing overhead": { code: 5200, category: "Operating Expense" },
-    "factory rent": { code: 5210, category: "Operating Expense" },
-    "factory utilities": { code: 5220, category: "Operating Expense" },
+  { Category: "Operating Expense", CodeRange: "5000-5000", Account: "cost of goods sold" },
+  { Category: "Operating Expense", CodeRange: "5100-5100", Account: "direct materials" },
+  { Category: "Operating Expense", CodeRange: "5110-5110", Account: "raw material purchases" },
+  { Category: "Operating Expense", CodeRange: "5120-5120", Account: "direct labor" },
+  { Category: "Operating Expense", CodeRange: "5200-5200", Account: "manufacturing overhead" },
+  { Category: "Operating Expense", CodeRange: "5210-5210", Account: "factory rent" },
+  { Category: "Operating Expense", CodeRange: "5220-5220", Account: "factory utilities" },
 
-    // Operating Expenses
-    "salaries & wages": { code: 5300, category: "Operating Expense" },
-    "employee benefits": { code: 5310, category: "Operating Expense" },
-    "rent expense": { code: 5400, category: "Operating Expense" },
-    "utilities": { code: 5410, category: "Operating Expense" },
-    "electricity": { code: 5411, category: "Operating Expense" },
-    "water": { code: 5412, category: "Operating Expense" },
-    "internet/communication": { code: 5413, category: "Operating Expense" },
-    "insurance": { code: 5500, category: "Operating Expense" },
-    "depreciation expense": { code: 5600, category: "Operating Expense" },
-    "marketing & advertising": { code: 5700, category: "Operating Expense" },
-    "office supplies": { code: 5800, category: "Operating Expense" },
-    "travel & entertainment": { code: 5900, category: "Operating Expense" },
+  { Category: "Operating Expense", CodeRange: "5300-5300", Account: "salaries & wages" },
+  { Category: "Operating Expense", CodeRange: "5310-5310", Account: "employee benefits" },
+  { Category: "Operating Expense", CodeRange: "5400-5400", Account: "rent expense" },
+  { Category: "Operating Expense", CodeRange: "5410-5413", Account: "utilities" }, // merged internet/electric/water
+  { Category: "Operating Expense", CodeRange: "5500-5500", Account: "insurance" },
+  { Category: "Operating Expense", CodeRange: "5600-5600", Account: "depreciation expense" },
+  { Category: "Operating Expense", CodeRange: "5700-5700", Account: "marketing & advertising" },
+  { Category: "Operating Expense", CodeRange: "5800-5800", Account: "office supplies" },
+  { Category: "Operating Expense", CodeRange: "5900-5900", Account: "travel & entertainment" },
 
-    // Administrative & General Expenses
-    "legal & professional fees": { code: 6000, category: "Administrative Expense" },
-    "training & development": { code: 6100, category: "Administrative Expense" },
-    "repairs & maintenance": { code: 6200, category: "Administrative Expense" },
-    "communication expense": { code: 6300, category: "Administrative Expense" },
-    "bank charges": { code: 6400, category: "Administrative Expense" },
-    "software subscriptions": { code: 6500, category: "Administrative Expense" },
-    "miscellaneous expense": { code: 6600, category: "Administrative Expense" },
+  { Category: "Administrative Expense", CodeRange: "6000-6000", Account: "legal & professional fees" },
+  { Category: "Administrative Expense", CodeRange: "6100-6100", Account: "training & development" },
+  { Category: "Administrative Expense", CodeRange: "6200-6200", Account: "repairs & maintenance" },
+  { Category: "Administrative Expense", CodeRange: "6300-6300", Account: "communication expense" },
+  { Category: "Administrative Expense", CodeRange: "6400-6400", Account: "bank charges" },
+  { Category: "Administrative Expense", CodeRange: "6500-6500", Account: "software subscriptions" },
+  { Category: "Administrative Expense", CodeRange: "6600-6600", Account: "miscellaneous expense" },
 
-    // Other Income & Expenses
-    "interest expense": { code: 7100, category: "Other Income & Expenses" },
-    "gain/loss on asset disposal": { code: 7200, category: "Other Income & Expenses" },
-    "foreign exchange gain/loss": { code: 7300, category: "Other Income & Expenses" },
+  { Category: "Other Income/Expense", CodeRange: "7100-7100", Account: "interest expense" },
+  { Category: "Other Income/Expense", CodeRange: "7200-7200", Account: "gain/loss on asset disposal" },
+  { Category: "Other Income/Expense", CodeRange: "7300-7300", Account: "foreign exchange gain/loss" },
 
-    // Extraordinary / Non-Operating
-    "extraordinary gains": { code: 8100, category: "Extraordinary / Non-Operating" },
-    "extraordinary losses": { code: 8200, category: "Extraordinary / Non-Operating" },
+  { Category: "Extraordinary / Non-Operating", CodeRange: "8100-8100", Account: "extraordinary gains" },
+  { Category: "Extraordinary / Non-Operating", CodeRange: "8200-8200", Account: "extraordinary losses" }
+];
+
 };
 
 
@@ -911,6 +902,7 @@ document.getElementById('getStartedBtn').addEventListener('click', () => {
 
 </body>
 </html>
+
 
 
 
