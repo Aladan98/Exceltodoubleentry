@@ -763,97 +763,98 @@ function downloadSample() {
 
     // Prepare legend data
     const legendData = [
-      // Assets
-    "cash": 1000,
-    "bank": 1010,
-    "petty cash": 1020,
-    "accounts receivable": 1100,
-    "allowance doubtful accounts": 1110,
-    "inventory": 1200,
-    "raw materials": 1210,
-    "work in progress": 1220,
-    "finished goods": 1230,
-    "prepaid expenses": 1300,
-    "fixed assets": 1400,
-    "accumulated depreciation": 1410,
-    "buildings": 1420,
-    "vehicles": 1430,
-    "office equipment": 1440,
-    "intangible assets": 1500,
-    "other current assets": 1600,
+     // Assets
+    "cash": { code: 1000, category: "Asset" },
+    "bank": { code: 1010, category: "Asset" },
+    "petty cash": { code: 1020, category: "Asset" },
+    "accounts receivable": { code: 1100, category: "Asset" },
+    "allowance doubtful accounts": { code: 1110, category: "Asset" },
+    "inventory": { code: 1200, category: "Asset" },
+    "raw materials": { code: 1210, category: "Asset" },
+    "work in progress": { code: 1220, category: "Asset" },
+    "finished goods": { code: 1230, category: "Asset" },
+    "prepaid expenses": { code: 1300, category: "Asset" },
+    "fixed assets": { code: 1400, category: "Asset" },
+    "accumulated depreciation": { code: 1410, category: "Asset" },
+    "buildings": { code: 1420, category: "Asset" },
+    "vehicles": { code: 1430, category: "Asset" },
+    "office equipment": { code: 1440, category: "Asset" },
+    "intangible assets": { code: 1500, category: "Asset" },
+    "other current assets": { code: 1600, category: "Asset" },
 
     // Liabilities
-    "accounts payable": 2000,
-    "credit cards": 2100,
-    "accrued expenses": 2200,
-    "taxes payable": 2300,
-    "short term loans": 2400,
-    "long term debt": 2500,
-    "employee benefits payable": 2600,
-    "unearned revenue": 2700,
-    "other current liabilities": 2800,
+    "accounts payable": { code: 2000, category: "Liability" },
+    "credit cards": { code: 2100, category: "Liability" },
+    "accrued expenses": { code: 2200, category: "Liability" },
+    "taxes payable": { code: 2300, category: "Liability" },
+    "short term loans": { code: 2400, category: "Liability" },
+    "long term debt": { code: 2500, category: "Liability" },
+    "employee benefits payable": { code: 2600, category: "Liability" },
+    "unearned revenue": { code: 2700, category: "Liability" },
+    "other current liabilities": { code: 2800, category: "Liability" },
 
     // Equity
-    "capital": 3000,
-    "retained earnings": 3100,
-    "drawing": 3200,
-    "additional paid-in capital": 3300,
-    "reserves": 3400,
-    "treasury shares": 3500,
+    "capital": { code: 3000, category: "Equity" },
+    "retained earnings": { code: 3100, category: "Equity" },
+    "drawing": { code: 3200, category: "Equity" },
+    "additional paid-in capital": { code: 3300, category: "Equity" },
+    "reserves": { code: 3400, category: "Equity" },
+    "treasury shares": { code: 3500, category: "Equity" },
 
     // Revenue
-    "sale": 4000,
-    "product sales": 4010,
-    "service revenue": 4020,
-    "rental income": 4100,
-    "interest": 4200,
-    "other operating income": 4300,
+    "sale": { code: 4000, category: "Revenue" },
+    "product sales": { code: 4010, category: "Revenue" },
+    "service revenue": { code: 4020, category: "Revenue" },
+    "rental income": { code: 4100, category: "Revenue" },
+    "interest": { code: 4200, category: "Revenue" },
+    "other operating income": { code: 4300, category: "Revenue" },
 
     // Contra Revenue
-    "return": 4500,
-    "discount allowed": 4510,
+    "return": { code: 4500, category: "Contra Revenue" },
+    "discount allowed": { code: 4510, category: "Contra Revenue" },
 
     // Cost of Sales
-    "cost of goods sold": 5000,
-    "direct materials": 5100,
-    "raw material purchases": 5110,
-    "direct labor": 5120,
-    "manufacturing overhead": 5200,
-    "factory rent": 5210,
-    "factory utilities": 5220,
+    "cost of goods sold": { code: 5000, category: "Operating Expense" },
+    "direct materials": { code: 5100, category: "Operating Expense" },
+    "raw material purchases": { code: 5110, category: "Operating Expense" },
+    "direct labor": { code: 5120, category: "Operating Expense" },
+    "manufacturing overhead": { code: 5200, category: "Operating Expense" },
+    "factory rent": { code: 5210, category: "Operating Expense" },
+    "factory utilities": { code: 5220, category: "Operating Expense" },
 
     // Operating Expenses
-    "salaries & wages": 5300,
-    "employee benefits": 5310,
-    "rent expense": 5400,
-    "utilities": 5410,
-    "electricity": 5411,
-    "water": 5412,
-    "internet/communication": 5413,
-    "insurance": 5500,
-    "depreciation expense": 5600,
-    "marketing & advertising": 5700,
-    "office supplies": 5800,
-    "travel & entertainment": 5900,
+    "salaries & wages": { code: 5300, category: "Operating Expense" },
+    "employee benefits": { code: 5310, category: "Operating Expense" },
+    "rent expense": { code: 5400, category: "Operating Expense" },
+    "utilities": { code: 5410, category: "Operating Expense" },
+    "electricity": { code: 5411, category: "Operating Expense" },
+    "water": { code: 5412, category: "Operating Expense" },
+    "internet/communication": { code: 5413, category: "Operating Expense" },
+    "insurance": { code: 5500, category: "Operating Expense" },
+    "depreciation expense": { code: 5600, category: "Operating Expense" },
+    "marketing & advertising": { code: 5700, category: "Operating Expense" },
+    "office supplies": { code: 5800, category: "Operating Expense" },
+    "travel & entertainment": { code: 5900, category: "Operating Expense" },
 
     // Administrative & General Expenses
-    "legal & professional fees": 6000,
-    "training & development": 6100,
-    "repairs & maintenance": 6200,
-    "communication expense": 6300,
-    "bank charges": 6400,
-    "software subscriptions": 6500,
-    "miscellaneous expense": 6600,
+    "legal & professional fees": { code: 6000, category: "Administrative Expense" },
+    "training & development": { code: 6100, category: "Administrative Expense" },
+    "repairs & maintenance": { code: 6200, category: "Administrative Expense" },
+    "communication expense": { code: 6300, category: "Administrative Expense" },
+    "bank charges": { code: 6400, category: "Administrative Expense" },
+    "software subscriptions": { code: 6500, category: "Administrative Expense" },
+    "miscellaneous expense": { code: 6600, category: "Administrative Expense" },
 
     // Other Income & Expenses
-    "interest expense": 7100,
-    "gain/loss on asset disposal": 7200,
-    "foreign exchange gain/loss": 7300,
+    "interest expense": { code: 7100, category: "Other Income & Expenses" },
+    "gain/loss on asset disposal": { code: 7200, category: "Other Income & Expenses" },
+    "foreign exchange gain/loss": { code: 7300, category: "Other Income & Expenses" },
 
     // Extraordinary / Non-Operating
-    "extraordinary gains": 8100,
-    "extraordinary losses": 8200
-    ];
+    "extraordinary gains": { code: 8100, category: "Extraordinary / Non-Operating" },
+    "extraordinary losses": { code: 8200, category: "Extraordinary / Non-Operating" }
+};
+
 
     // Create worksheet for legend
     const wsLegend = XLSX.utils.json_to_sheet(legendData, {
@@ -910,6 +911,7 @@ document.getElementById('getStartedBtn').addEventListener('click', () => {
 
 </body>
 </html>
+
 
 
 
