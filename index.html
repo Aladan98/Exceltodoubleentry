@@ -218,7 +218,7 @@ tr:hover {
 
 <div id="sampleTab" class="tabContent">
   <table id="sampleTable">
-      <td>${row.Date}</td><td>${row.Description}</td><td>${row.Type}</td><td>${row.Amount}</td><td>${acc}</td><td>${range}</td><td>${category}</td>
+      <tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Account</th><th>Code Range</th><th>Category</th></tr>
   </table>
 </div>
 
@@ -372,6 +372,7 @@ const accountMapping = {
     // Extraordinary / Non-Operating
     "extraordinary gains": 8100,
     "extraordinary losses": 8200
+};
 
 // --- Detect Account safely ---
 function detectAccount(description) {
@@ -409,6 +410,8 @@ function formatDate(excelDate) {
     return !isNaN(fallback) ? fallback.toISOString().split("T")[0] : "";
 }
 
+// --- Populate sample table ---
+// --- Populate Sample Table with General Code Range ---
 function populateSample() {
     const table = document.getElementById('sampleTable');
     table.innerHTML = `<tr>
@@ -422,25 +425,24 @@ function populateSample() {
     </tr>`;
 
     sampleData.forEach(row => {
-        const acc = detectAccount(row.Account || row.Description);
-        const code = accountMapping[acc] || 0;
+        const code = accountMapping[row.Account] || 0;
         const category = getAccountTypeByCode(code);
-        const range = category && accountCodes[category] ? 
-                      `${accountCodes[category].min} - ${accountCodes[category].max}` : '';
+        let range = '';
+        if(category && accountCodes[category]){
+            range = `${accountCodes[category].min} - ${accountCodes[category].max}`;
+        }
 
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${row.Date}</td>
                         <td>${row.Description}</td>
                         <td>${row.Type}</td>
                         <td>${row.Amount}</td>
-                        <td>${acc}</td>
-                        <td>${range}</td>
-                        <td>${category}</td>`;
+                        <td>${row.Account}</td>
+                        <td>${range}</td>       <!-- General Code Range -->
+                        <td>${category}</td>`;  <!-- General Category -->
         table.appendChild(tr);
     });
 }
-
-
 
 
 
@@ -741,17 +743,14 @@ function getCodeRange(account) {
 function downloadSample() {
     // Prepare sample data with code ranges and categories
     const sampleDataWithCodes = sampleData.map(row => {
-        const acc = detectAccount(row.Account || row.Description);
-        const code = accountMapping[acc] || 0;
-        const category = getAccountTypeByCode(code);
-        const range = category && accountCodes[category] ? 
-                      `${accountCodes[category].min} - ${accountCodes[category].max}` : '';
+        const category = getAccountTypeByCode(accountMapping[row.Account] || 0);
+        const range = getCodeRange(row.Account);
         return {
             Date: row.Date,
             Description: row.Description,
             Type: row.Type,
             Amount: row.Amount,
-            Account: acc,
+            Account: row.Account,
             CodeRange: range,
             Category: category
         };
@@ -762,26 +761,113 @@ function downloadSample() {
         header: ["Date", "Description", "Type", "Amount", "Account", "CodeRange", "Category"]
     });
 
-    // Prepare full professional COA legend
-    const legendData = [];
-    for (const [category, info] of Object.entries(accountCodes)) {
-        legendData.push({Category: category, CodeRange: `${info.min}-${info.max}`, Description: info.description});
-    }
+    // Prepare legend data
+    const legendData = [
+      // Assets
+    "cash": 1000,
+    "bank": 1010,
+    "petty cash": 1020,
+    "accounts receivable": 1100,
+    "allowance doubtful accounts": 1110,
+    "inventory": 1200,
+    "raw materials": 1210,
+    "work in progress": 1220,
+    "finished goods": 1230,
+    "prepaid expenses": 1300,
+    "fixed assets": 1400,
+    "accumulated depreciation": 1410,
+    "buildings": 1420,
+    "vehicles": 1430,
+    "office equipment": 1440,
+    "intangible assets": 1500,
+    "other current assets": 1600,
+
+    // Liabilities
+    "accounts payable": 2000,
+    "credit cards": 2100,
+    "accrued expenses": 2200,
+    "taxes payable": 2300,
+    "short term loans": 2400,
+    "long term debt": 2500,
+    "employee benefits payable": 2600,
+    "unearned revenue": 2700,
+    "other current liabilities": 2800,
+
+    // Equity
+    "capital": 3000,
+    "retained earnings": 3100,
+    "drawing": 3200,
+    "additional paid-in capital": 3300,
+    "reserves": 3400,
+    "treasury shares": 3500,
+
+    // Revenue
+    "sale": 4000,
+    "product sales": 4010,
+    "service revenue": 4020,
+    "rental income": 4100,
+    "interest": 4200,
+    "other operating income": 4300,
+
+    // Contra Revenue
+    "return": 4500,
+    "discount allowed": 4510,
+
+    // Cost of Sales
+    "cost of goods sold": 5000,
+    "direct materials": 5100,
+    "raw material purchases": 5110,
+    "direct labor": 5120,
+    "manufacturing overhead": 5200,
+    "factory rent": 5210,
+    "factory utilities": 5220,
+
+    // Operating Expenses
+    "salaries & wages": 5300,
+    "employee benefits": 5310,
+    "rent expense": 5400,
+    "utilities": 5410,
+    "electricity": 5411,
+    "water": 5412,
+    "internet/communication": 5413,
+    "insurance": 5500,
+    "depreciation expense": 5600,
+    "marketing & advertising": 5700,
+    "office supplies": 5800,
+    "travel & entertainment": 5900,
+
+    // Administrative & General Expenses
+    "legal & professional fees": 6000,
+    "training & development": 6100,
+    "repairs & maintenance": 6200,
+    "communication expense": 6300,
+    "bank charges": 6400,
+    "software subscriptions": 6500,
+    "miscellaneous expense": 6600,
+
+    // Other Income & Expenses
+    "interest expense": 7100,
+    "gain/loss on asset disposal": 7200,
+    "foreign exchange gain/loss": 7300,
+
+    // Extraordinary / Non-Operating
+    "extraordinary gains": 8100,
+    "extraordinary losses": 8200
+    ];
 
     // Create worksheet for legend
     const wsLegend = XLSX.utils.json_to_sheet(legendData, {
-        header: ["Category", "CodeRange", "Description"]
+        header: ["Category", "CodeRange"]
     });
 
     // Create workbook and append sheets
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, wsSample, "Sample Data");
-    XLSX.utils.book_append_sheet(wb, wsLegend, "COA Legend");
+    XLSX.utils.book_append_sheet(wb, wsLegend, "Code Legend");
 
     // Export file
-    XLSX.writeFile(wb, "SampleProfessionalCOA.xlsx");
+    XLSX.writeFile(wb, "SamplePettyCash.xlsx");
 }
-
 
 
 function openTab(evt, tabName) {
@@ -824,7 +910,6 @@ document.getElementById('getStartedBtn').addEventListener('click', () => {
 
 </body>
 </html>
-
 
 
 
