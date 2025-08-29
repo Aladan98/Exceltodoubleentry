@@ -218,14 +218,14 @@ tr:hover {
 
 <div id="sampleTab" class="tabContent">
   <table id="sampleTable">
-      <tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Account</th><th>Code</th><th>Category</th></tr>
+      <tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Account</th><th>Code Range</th><th>Category</th></tr>
   </table>
 </div>
 
 <div id="journalTab" class="tabContent">
   <div class="scrollable">
     <table id="journalTable">
-        <tr><th>Date</th><th>Account</th><th>Code</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th></tr>
+        <tr><th>Date</th><th>Account</th><th>Code Range</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th></tr>
     </table>
   </div>
 </div>
@@ -233,7 +233,7 @@ tr:hover {
 <div id="ledgerTab" class="tabContent">
   <div class="scrollable">
     <table id="ledgerTable">
-        <tr><th>Account</th><th>Code</th><th>Category</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
+        <tr><th>Account</th><th>Code Range</th><th>Category</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
     </table>
   </div>
 </div>
@@ -249,86 +249,59 @@ let ledger = {};
 
 const sampleData = [
   {Date:"2025-08-01", Description:"Office Supplies Purchase", Type:"Payment", Amount:120, Account:"office supplies"},
-  {Date:"2025-08-02", Description:"Staff Lunch", Type:"Payment", Amount:45, Account:"travel & entertainment"}, // replaced 'staff food'
-  {Date:"2025-08-03", Description:"Legal Consultation", Type:"Payment", Amount:300, Account:"legal & professional fees"}, // replaced 'legal'
+  {Date:"2025-08-02", Description:"Staff Lunch", Type:"Payment", Amount:45, Account:"staff food"},
+  {Date:"2025-08-03", Description:"Legal Consultation", Type:"Payment", Amount:300, Account:"legal"},
   {Date:"2025-08-04", Description:"Product Sale", Type:"Receipt", Amount:500, Account:"sale"},
-  {Date:"2025-08-05", Description:"Car Fuel", Type:"Payment", Amount:60, Account:"travel & entertainment"}, // replaced 'fuel'
-  {Date:"2025-08-06", Description:"Asset Purchased – Computer", Type:"Payment", Amount:800, Account:"office equipment"}, // replaced 'computer'
-  {Date:"2025-08-07", Description:"Asset Sold – Printer", Type:"Receipt", Amount:200, Account:"office equipment"}, // replaced 'computer'
-  {Date:"2025-08-08", Description:"Discount Received", Type:"Receipt", Amount:50, Account:"discount allowed"}, // replaced 'discount received'
-  {Date:"2025-08-09", Description:"Stationery Purchase", Type:"Payment", Amount:70, Account:"office supplies"},
-  {Date:"2025-08-10", Description:"Staff Snacks", Type:"Payment", Amount:30, Account:"travel & entertainment"}, // replaced 'staff food'
+  {Date:"2025-08-05", Description:"Car Fuel", Type:"Payment", Amount:60, Account:"fuel"},
+  {Date:"2025-08-06", Description:"Asset Purchased – Computer", Type:"Payment", Amount:800, Account:"computer"},
+  {Date:"2025-08-07", Description:"Asset Sold – Printer", Type:"Receipt", Amount:200, Account:"computer"},
+  {Date:"2025-08-08", Description:"Discount Received", Type:"Receipt", Amount:50, Account:"discount received"},
+  {Date:"2025-08-09", Description:"Stationery Purchase", Type:"Payment", Amount:70, Account:"stationery"},
+  {Date:"2025-08-10", Description:"Staff Snacks", Type:"Payment", Amount:30, Account:"staff food"},
   {Date:"2025-08-11", Description:"Sales Returned – Product A", Type:"Payment", Amount:100, Account:"return"},
-  {Date:"2025-08-12", Description:"Legal Fee", Type:"Payment", Amount:250, Account:"legal & professional fees"}, // replaced 'legal'
-  {Date:"2025-08-13", Description:"Printing Flyers", Type:"Payment", Amount:150, Account:"marketing & advertising"}, // replaced 'printing'
-  {Date:"2025-08-14", Description:"Misc Expenses", Type:"Payment", Amount:60, Account:"miscellaneous expense"}, // replaced 'misc'
+  {Date:"2025-08-12", Description:"Legal Fee", Type:"Payment", Amount:250, Account:"legal"},
+  {Date:"2025-08-13", Description:"Printing Flyers", Type:"Payment", Amount:150, Account:"printing"},
+  {Date:"2025-08-14", Description:"Misc Expenses", Type:"Payment", Amount:60, Account:"misc"},
   {Date:"2025-08-15", Description:"Owner Capital Contribution", Type:"Receipt", Amount:1000, Account:"capital"},
   {Date:"2025-08-16", Description:"Owner Drawing", Type:"Payment", Amount:200, Account:"drawing"},
   {Date:"2025-08-17", Description:"Bank Interest Income", Type:"Receipt", Amount:75, Account:"interest"},
-  {Date:"2025-08-18", Description:"Loan Repayment", Type:"Payment", Amount:500, Account:"short term loans"} // replaced 'loan'
+  {Date:"2025-08-18", Description:"Loan Repayment", Type:"Payment", Amount:500, Account:"loan"}
 ];
 
 const accountCodes = {
-"Asset": { min: 1000, max: 1999, description: "Current & Fixed Assets" },
+    "Asset": { min: 1000, max: 1999, description: "Current & Fixed Assets" },
   "Liability": { min: 2000, max: 2999, description: "Current & Long-term Liabilities" },
   "Equity": { min: 3000, max: 3999, description: "Owner's Equity & Capital" },
-  "Revenue": { min: 4000, max: 4499, description: "Operating Revenue" },
+  "Revenue": { min: 4000, max: 4499, description: "Operating & Other Revenue" },
   "Contra Revenue": { min: 4500, max: 4599, description: "Returns & Discounts" },
-  "Cost of Sales": { min: 5000, max: 5299, description: "Cost of Goods Sold / Direct Costs" },
-  "Operating Expense": { min: 5300, max: 5999, description: "Operating Expenses" },
-  "Administrative Expense": { min: 6000, max: 6999, description: "Admin & General Expenses" },
-  "Other Income/Expense": { min: 7000, max: 7999, description: "Non-operating / Other Income & Expenses" },
-  "Extraordinary": { min: 8000, max: 8999, description: "Extraordinary Items" }
+  "Operating Expense": { min: 5000, max: 5999, description: "Direct Operating Costs" },
+  "Administrative Expense": { min: 6000, max: 6999, description: "Admin & Overhead Costs" }
 };
 
 const accountMapping = {
-   // Assets
-  "cash": 1000, "bank": 1010, "petty cash": 1020,
-  "accounts receivable": 1100, "allowance doubtful accounts": 1110,
-  "inventory": 1200, "raw materials": 1210, "work in progress": 1220,
-  "finished goods": 1230, "prepaid expenses": 1300, "fixed assets": 1400,
-  "accumulated depreciation": 1410, "buildings": 1420, "vehicles": 1430,
-  "office equipment": 1440, "intangible assets": 1500, "other current assets": 1600,
-
-  // Liabilities
-  "accounts payable": 2000, "credit cards": 2100, "accrued expenses": 2200,
-  "taxes payable": 2300, "short term loans": 2400, "long term debt": 2500,
-  "employee benefits payable": 2600, "unearned revenue": 2700,
-  "other current liabilities": 2800,
-
-  // Equity
-  "capital": 3000, "retained earnings": 3100, "drawing": 3200,
-  "additional paid-in capital": 3300, "reserves": 3400, "treasury shares": 3500,
-
-  // Revenue
-  "sale": 4000, "product sales": 4010, "service revenue": 4020,
-  "rental income": 4100, "interest": 4200, "other operating income": 4300,
-
-  // Contra Revenue
-  "return": 4500, "discount allowed": 4510,
-
-  // Cost of Sales
-  "cost of goods sold": 5000, "direct materials": 5100, "raw material purchases": 5110,
-  "direct labor": 5120, "manufacturing overhead": 5200, "factory rent": 5210,
-  "factory utilities": 5220,
-
-  // Operating Expenses
-  "salaries & wages": 5300, "employee benefits": 5310, "rent expense": 5400,
-  "utilities": 5410, "electricity": 5411, "water": 5412, "internet/communication": 5413,
-  "insurance": 5500, "depreciation expense": 5600, "marketing & advertising": 5700,
-  "office supplies": 5800, "travel & entertainment": 5900,
-
-  // Administrative & General Expenses
-  "legal & professional fees": 6000, "training & development": 6100,
-  "repairs & maintenance": 6200, "communication expense": 6300,
-  "bank charges": 6400, "software subscriptions": 6500, "miscellaneous expense": 6600,
-
-  // Other Income & Expenses
-  "interest expense": 7100, "gain/loss on asset disposal": 7200,
-  "foreign exchange gain/loss": 7300,
-
-  // Extraordinary / Non-Operating
-  "extraordinary gains": 8100, "extraordinary losses": 8200
+   "office supplies": 5000,
+  "stationery": 5010,
+  "staff food": 5400,
+  "staff lunch": 5400,
+  "legal": 5300,
+  "fuel": 5500,
+  "printing": 5600,
+  "computer": 1500,
+  "laptop": 1500,
+  "furniture": 1600,
+  "sale": 4000,
+  "income": 4000,
+  "return": 4500,
+  "discount received": 4300,
+  "capital": 3000,
+  "drawing": 3200,
+  "loan": 2500,
+  "bank": 1010,
+  "cash": 1000,
+  "interest": 4200,
+  "rent": 5100,
+  "electricity": 5200,
+  "misc": 5900
 };
 
 // --- Detect Account safely ---
@@ -340,7 +313,7 @@ function detectAccount(description) {
     return "Misc";
 }
 
-
+// --- Get category from code ---
 function getAccountTypeByCode(code) {
     for (const [type, range] of Object.entries(accountCodes)) {
         if (code >= range.min && code <= range.max) return type;
@@ -348,6 +321,7 @@ function getAccountTypeByCode(code) {
     return "Unknown";
 }
 
+// --- Format Excel/Date ---
 function formatDate(excelDate) {
     if (!excelDate) return "";
     if (!isNaN(excelDate)) {
@@ -366,6 +340,8 @@ function formatDate(excelDate) {
     return !isNaN(fallback) ? fallback.toISOString().split("T")[0] : "";
 }
 
+// --- Populate sample table ---
+// --- Populate Sample Table with General Code Range ---
 function populateSample() {
     const table = document.getElementById('sampleTable');
     table.innerHTML = `<tr>
@@ -374,13 +350,17 @@ function populateSample() {
         <th>Type</th>
         <th>Amount</th>
         <th>Account</th>
-        <th>Code</th>
+        <th>Code Range</th>
         <th>Category</th>
     </tr>`;
 
- sampleData.forEach(row => {
-    const code = accountMapping[row.Account] || 0;   // single code
-    const category = getAccountTypeByCode(code);     // get category from code
+    sampleData.forEach(row => {
+        const code = accountMapping[row.Account] || 0;
+        const category = getAccountTypeByCode(code);
+        let range = '';
+        if(category && accountCodes[category]){
+            range = `${accountCodes[category].min} - ${accountCodes[category].max}`;
+        }
 
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${row.Date}</td>
@@ -388,8 +368,8 @@ function populateSample() {
                         <td>${row.Type}</td>
                         <td>${row.Amount}</td>
                         <td>${row.Account}</td>
-                        <td>${code}</td>      
-                        <td>${category}</td>`;  
+                        <td>${range}</td>       <!-- General Code Range -->
+                        <td>${category}</td>`;  <!-- General Category -->
         table.appendChild(tr);
     });
 }
@@ -427,7 +407,7 @@ function displaySheet(data){
     const table = document.getElementById('sampleTable');
     table.innerHTML = `<tr>
         <th>Date</th><th>Description</th><th>Type</th><th>Amount</th>
-        <th>Account</th><th>Code</th><th>Category</th>
+        <th>Account</th><th>Code Range</th><th>Category</th>
     </tr>`;
     data.forEach(row => {
         const account = detectAccount(row.Description);
@@ -440,8 +420,8 @@ function displaySheet(data){
                         <td>${row.Type}</td>
                         <td>${row.Amount}</td>
                         <td>${account}</td>
-                        <td>${entry.Code || getCodeRange(entry.Account)}</td>
-                           <td>${category}</td>`;
+                        <td>${range}</td>
+                        <td>${category}</td>`;
         table.appendChild(tr);
     });
 }
@@ -475,7 +455,7 @@ function generateJournal(){
 
 function displayJournal() {
     const table = document.getElementById('journalTable');
-    table.innerHTML = '<tr><th>Date</th><th>Account</th><th>Code</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th></tr>';
+    table.innerHTML = '<tr><th>Date</th><th>Account</th><th>Code Range</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th></tr>';
 
     const fragment = document.createDocumentFragment();
     journal.forEach(entry => {
@@ -483,8 +463,8 @@ function displayJournal() {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${entry.Date}</td>
                         <td>${entry.Account}</td>
-                        <td>${entry.Code || getCodeRange(entry.Account)}</td>
-                     <td>${entry.Category}</td>
+                        <td>${range}</td>
+                        <td>${entry.Category}</td>
                         <td class="debit">${entry.Debit || ''}</td>
                         <td class="credit">${entry.Credit || ''}</td>
                         <td>${entry.Description}</td>`;
@@ -508,7 +488,7 @@ function generateLedger(){
 
 function displayLedger() {
     const table = document.getElementById('ledgerTable');
-    table.innerHTML = '<tr><th>Account</th><th>Code</th><th>Category</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>';
+    table.innerHTML = '<tr><th>Account</th><th>Code Range</th><th>Category</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>';
 
     const fragment = document.createDocumentFragment();
     for (const acc in ledger) {
@@ -518,8 +498,8 @@ function displayLedger() {
             const range = getCodeRange(entry.Account);
             const tr = document.createElement('tr');
             tr.innerHTML = `<td>${entry.Account}</td>
-                            <td>${entry.Code || getCodeRange(entry.Account)}</td>
-                         <td>${entry.Category}</td>
+                            <td>${range}</td>
+                            <td>${entry.Category}</td>
                             <td>${entry.Date}</td>
                             <td>${entry.Description}</td>
                             <td class="debit">${(entry.Debit||0).toFixed(2)}</td>
@@ -683,117 +663,48 @@ function exportPlatform() {
 
 
 function getCodeRange(account) {
-    return accountMapping[account] || 0; // single code
+    const code = accountMapping[account] || 0;
+    const category = getAccountTypeByCode(code);
+    if(category && accountCodes[category]){
+        return `${accountCodes[category].min} - ${accountCodes[category].max}`;
+    }
+    return '';
 }
 function downloadSample() {
+    // Prepare sample data with code ranges and categories
     const sampleDataWithCodes = sampleData.map(row => {
-        const code = getCodeRange(row.Account); // single code
-        const category = getAccountTypeByCode(code);
+        const category = getAccountTypeByCode(accountMapping[row.Account] || 0);
+        const range = getCodeRange(row.Account);
         return {
             Date: row.Date,
             Description: row.Description,
             Type: row.Type,
             Amount: row.Amount,
             Account: row.Account,
-            Code: code,
+            CodeRange: range,
             Category: category
         };
     });
 
     // Create worksheet for sample data
     const wsSample = XLSX.utils.json_to_sheet(sampleDataWithCodes, { 
-        header: ["Date", "Description", "Type", "Amount", "Account", "Code", "Category"]
+        header: ["Date", "Description", "Type", "Amount", "Account", "CodeRange", "Category"]
     });
 
     // Prepare legend data
     const legendData = [
-  { Category: "Cash (Asset)", Code: 1000 },
-  { Category: "Bank (Asset)", Code: 1010 },
-  { Category: "Petty Cash (Asset)", Code: 1020 },
-  { Category: "Accounts Receivable (Asset)", Code: 1100 },
-  { Category: "Allowance Doubtful Accounts (Asset)", Code: 1110 },
-  { Category: "Inventory (Asset)", Code: 1200 },
-  { Category: "Raw Materials (Asset)", Code: 1210 },
-  { Category: "Work In Progress (Asset)", Code: 1220 },
-  { Category: "Finished Goods (Asset)", Code: 1230 },
-  { Category: "Prepaid Expenses (Asset)", Code: 1300 },
-  { Category: "Fixed Assets (Asset)", Code: 1400 },
-  { Category: "Accumulated Depreciation (Asset)", Code: 1410 },
-  { Category: "Buildings (Asset)", Code: 1420 },
-  { Category: "Vehicles (Asset)", Code: 1430 },
-  { Category: "Office Equipment (Asset)", Code: 1440 },
-  { Category: "Intangible Assets (Asset)", Code: 1500 },
-  { Category: "Other Current Assets (Asset)", Code: 1600 },
-  
-  { Category: "Accounts Payable (Liability)", Code: 2000 },
-  { Category: "Credit Cards (Liability)", Code: 2100 },
-  { Category: "Accrued Expenses (Liability)", Code: 2200 },
-  { Category: "Taxes Payable (Liability)", Code: 2300 },
-  { Category: "Short Term Loans (Liability)", Code: 2400 },
-  { Category: "Long Term Debt (Liability)", Code: 2500 },
-  { Category: "Employee Benefits Payable (Liability)", Code: 2600 },
-  { Category: "Unearned Revenue (Liability)", Code: 2700 },
-  { Category: "Other Current Liabilities (Liability)", Code: 2800 },
-  
-  { Category: "Capital (Equity)", Code: 3000 },
-  { Category: "Retained Earnings (Equity)", Code: 3100 },
-  { Category: "Drawing (Equity)", Code: 3200 },
-  { Category: "Additional Paid-In Capital (Equity)", Code: 3300 },
-  { Category: "Reserves (Equity)", Code: 3400 },
-  { Category: "Treasury Shares (Equity)", Code: 3500 },
-  
-  { Category: "Sale (Revenue)", Code: 4000 },
-  { Category: "Product Sales (Revenue)", Code: 4010 },
-  { Category: "Service Revenue (Revenue)", Code: 4020 },
-  { Category: "Rental Income (Revenue)", Code: 4100 },
-  { Category: "Interest (Revenue)", Code: 4200 },
-  { Category: "Other Operating Income (Revenue)", Code: 4300 },
-  
-  { Category: "Return (Contra Revenue)", Code: 4500 },
-  { Category: "Discount Allowed (Contra Revenue)", Code: 4510 },
-  
-  { Category: "Cost of Goods Sold (Operating Expense)", Code: 5000 },
-  { Category: "Direct Materials (Operating Expense)", Code: 5100 },
-  { Category: "Raw Material Purchases (Operating Expense)", Code: 5110 },
-  { Category: "Direct Labor (Operating Expense)", Code: 5120 },
-  { Category: "Manufacturing Overhead (Operating Expense)", Code: 5200 },
-  { Category: "Factory Rent (Operating Expense)", Code: 5210 },
-  { Category: "Factory Utilities (Operating Expense)", Code: 5220 },
-  
-  { Category: "Salaries & Wages (Operating Expense)", Code: 5300 },
-  { Category: "Employee Benefits (Operating Expense)", Code: 5310 },
-  { Category: "Rent Expense (Operating Expense)", Code: 5400 },
-  { Category: "Utilities (Operating Expense)", Code: 5410 },
-  { Category: "Electricity (Operating Expense)", Code: 5411 },
-  { Category: "Water (Operating Expense)", Code: 5412 },
-  { Category: "Internet/Communication (Operating Expense)", Code: 5413 },
-  { Category: "Insurance (Operating Expense)", Code: 5500 },
-  { Category: "Depreciation Expense (Operating Expense)", Code: 5600 },
-  { Category: "Marketing & Advertising (Operating Expense)", Code: 5700 },
-  { Category: "Office Supplies (Operating Expense)", Code: 5800 },
-  { Category: "Travel & Entertainment (Operating Expense)", Code: 5900 },
-  
-  { Category: "Legal & Professional Fees (Administrative Expense)", Code: 6000 },
-  { Category: "Training & Development (Administrative Expense)", Code: 6100 },
-  { Category: "Repairs & Maintenance (Administrative Expense)", Code: 6200 },
-  { Category: "Communication Expense (Administrative Expense)", Code: 6300 },
-  { Category: "Bank Charges (Administrative Expense)", Code: 6400 },
-  { Category: "Software Subscriptions (Administrative Expense)", Code: 6500 },
-  { Category: "Miscellaneous Expense (Administrative Expense)", Code: 6600 },
-  
-  { Category: "Interest Expense (Other Income/Expense)", Code: 7100 },
-  { Category: "Gain/Loss on Asset Disposal (Other Income/Expense)", Code: 7200 },
-  { Category: "Foreign Exchange Gain/Loss (Other Income/Expense)", Code: 7300 },
-  
-  { Category: "Extraordinary Gains (Extraordinary/Non-Operating)", Code: 8100 },
-  { Category: "Extraordinary Losses (Extraordinary/Non-Operating)", Code: 8200 }
-];
-
+       {Category: "Asset", CodeRange: "1000-1999"},
+    {Category: "Liability", CodeRange: "2000-2999"},
+    {Category: "Equity", CodeRange: "3000-3999"},
+    {Category: "Revenue", CodeRange: "4000-4499"},
+    {Category: "Contra Revenue", CodeRange: "4500-4599"},
+    {Category: "Operating Expense", CodeRange: "5000-5999"},
+    {Category: "Administrative Expense", CodeRange: "6000-6999"}
     ];
 
     // Create worksheet for legend
     const wsLegend = XLSX.utils.json_to_sheet(legendData, {
-        header: ["Category", "Code"]
+        header: ["Category", "CodeRange"]
     });
 
     // Create workbook and append sheets
@@ -827,11 +738,14 @@ function openTab(evt, tabName) {
 
 window.onload = function() {
     populateSample();
-    document.getElementById("sampleTab").style.display = "block";
+    document.getElementById("sampleTab").style.display = "block"; // Show first tab
 };
 
 document.getElementById('getStartedBtn').addEventListener('click', () => {
+    // Hide welcome page
     document.getElementById('welcomePage').style.display = 'none';
+
+    // Show main content and header
     document.querySelector('main').style.display = 'flex';
     document.querySelector('header').style.display = 'block';
 });
