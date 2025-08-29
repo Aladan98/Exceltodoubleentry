@@ -848,7 +848,9 @@ function downloadSample() {
 
     // Create worksheet for legend
     const wsLegend = XLSX.utils.json_to_sheet(legendData, {
-        header: ["Category", "CodeRange"]
+       const wsLegend = XLSX.utils.json_to_sheet(legendData, {
+     header: ["Category", "CodeRange", "Account"]
+
     });
 
     // Create workbook and append sheets
@@ -901,6 +903,7 @@ document.getElementById('getStartedBtn').addEventListener('click', () => {
 
 </body>
 </html>
+
 
 
 
