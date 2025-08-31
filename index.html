@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,7 +12,7 @@ body {
     color: #e0e0e0;
     margin: 0;
 }
-    /* Welcome Page Styles */
+/* Welcome Page Styles */
 #welcomePage {
     display: flex;
     flex-direction: column;
@@ -73,7 +71,7 @@ main {
     gap: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.6);
 }
-.sidebar button, .sidebar input {
+.sidebar button, .sidebar input, .sidebar select {
     padding: 10px;
     font-size: 1rem;
     border-radius: 5px;
@@ -89,7 +87,7 @@ main {
 .sidebar button:hover {
     background: #00c853;
 }
-.sidebar input {
+.sidebar input, .sidebar select {
     background: #2a2a2a;
     color: #e0e0e0;
 }
@@ -141,7 +139,7 @@ tr:hover {
     .sidebar { width: 100%; }
 }
 
-    .tabs {
+.tabs {
   display: flex;
   gap: 10px;
   margin-bottom: 15px;
@@ -165,6 +163,59 @@ tr:hover {
 }
 .tabContent {
   display: none;
+}
+
+.custom-account-form {
+    background: #2a2a2a;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+.custom-account-form h3 {
+    color: #00e676;
+    margin-bottom: 15px;
+}
+.form-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.form-row input, .form-row select {
+    flex: 1;
+    padding: 8px;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    border: 1px solid #333;
+    border-radius: 5px;
+}
+.custom-accounts-list {
+    background: #1a1a1a;
+    padding: 15px;
+    border-radius: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+.account-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    border-bottom: 1px solid #333;
+}
+.account-item:last-child {
+    border-bottom: none;
+}
+.remove-btn {
+    background: #ff5252;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+.remove-btn:hover {
+    background: #d32f2f;
 }
 
 </style>
@@ -214,12 +265,15 @@ tr:hover {
       <button class="tabButton active" onclick="openTab(event, 'sampleTab')">Sample Excel</button>
       <button class="tabButton" onclick="openTab(event, 'journalTab')">Journal Entries</button>
       <button class="tabButton" onclick="openTab(event, 'ledgerTab')">General Ledger</button>
+      <button class="tabButton" onclick="openTab(event, 'customTab')">Custom Accounts</button>
     </div>
 
 <div id="sampleTab" class="tabContent">
-  <table id="sampleTable">
-      <tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Account</th><th>Code</th><th>Category</th></tr>
-  </table>
+  <div class="scrollable">
+    <table id="sampleTable">
+        <tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Account</th><th>Code</th><th>Category</th></tr>
+    </table>
+  </div>
 </div>
 
 <div id="journalTab" class="tabContent">
@@ -238,6 +292,32 @@ tr:hover {
   </div>
 </div>
 
+<div id="customTab" class="tabContent">
+  <div class="custom-account-form">
+    <h3>Add Custom Account</h3>
+    <div class="form-row">
+      <input type="text" id="customAccountName" placeholder="Account Name (e.g. custom inventory)">
+      <input type="number" id="customAccountCode" placeholder="Account Code">
+      <select id="customAccountCategory">
+        <option value="">Select Category</option>
+        <option value="asset">Asset (1000-1999)</option>
+        <option value="liability">Liability (2000-2999)</option>
+        <option value="equity">Equity (3000-3999)</option>
+        <option value="revenue">Revenue (4000-4499)</option>
+        <option value="expense">Expense (5000-6999)</option>
+      </select>
+      <button onclick="addCustomAccount()">Add</button>
+    </div>
+  </div>
+  
+  <div class="custom-accounts-list">
+    <h3>Custom Accounts</h3>
+    <div id="customAccountsList">
+      <p>No custom accounts added yet.</p>
+    </div>
+  </div>
+</div>
+
   </div>
 </main>
 
@@ -246,26 +326,27 @@ tr:hover {
 let sheetData = [];
 let journal = [];
 let ledger = {};
+let customAccounts = {};
 
 const sampleData = [
   {Date:"2025-08-01", Description:"Office Supplies Purchase", Type:"Payment", Amount:120, Account:"office supplies"},
-  {Date:"2025-08-02", Description:"Staff Lunch", Type:"Payment", Amount:45, Account:"travel & entertainment"}, // replaced 'staff food'
-  {Date:"2025-08-03", Description:"Legal Consultation", Type:"Payment", Amount:300, Account:"legal & professional fees"}, // replaced 'legal'
+  {Date:"2025-08-02", Description:"Staff Lunch", Type:"Payment", Amount:45, Account:"travel & entertainment"},
+  {Date:"2025-08-03", Description:"Legal Consultation", Type:"Payment", Amount:300, Account:"legal & professional fees"},
   {Date:"2025-08-04", Description:"Product Sale", Type:"Receipt", Amount:500, Account:"sale"},
-  {Date:"2025-08-05", Description:"Car Fuel", Type:"Payment", Amount:60, Account:"travel & entertainment"}, // replaced 'fuel'
-  {Date:"2025-08-06", Description:"Asset Purchased – Computer", Type:"Payment", Amount:800, Account:"office equipment"}, // replaced 'computer'
-  {Date:"2025-08-07", Description:"Asset Sold – Printer", Type:"Receipt", Amount:200, Account:"office equipment"}, // replaced 'computer'
-  {Date:"2025-08-08", Description:"Discount Received", Type:"Receipt", Amount:50, Account:"discount allowed"}, // replaced 'discount received'
+  {Date:"2025-08-05", Description:"Car Fuel", Type:"Payment", Amount:60, Account:"travel & entertainment"},
+  {Date:"2025-08-06", Description:"Asset Purchased – Computer", Type:"Payment", Amount:800, Account:"office equipment"},
+  {Date:"2025-08-07", Description:"Asset Sold – Printer", Type:"Receipt", Amount:200, Account:"office equipment"},
+  {Date:"2025-08-08", Description:"Discount Received", Type:"Receipt", Amount:50, Account:"discount allowed"},
   {Date:"2025-08-09", Description:"Stationery Purchase", Type:"Payment", Amount:70, Account:"office supplies"},
-  {Date:"2025-08-10", Description:"Staff Snacks", Type:"Payment", Amount:30, Account:"travel & entertainment"}, // replaced 'staff food'
+  {Date:"2025-08-10", Description:"Staff Snacks", Type:"Payment", Amount:30, Account:"travel & entertainment"},
   {Date:"2025-08-11", Description:"Sales Returned – Product A", Type:"Payment", Amount:100, Account:"return"},
-  {Date:"2025-08-12", Description:"Legal Fee", Type:"Payment", Amount:250, Account:"legal & professional fees"}, // replaced 'legal'
-  {Date:"2025-08-13", Description:"Printing Flyers", Type:"Payment", Amount:150, Account:"marketing & advertising"}, // replaced 'printing'
-  {Date:"2025-08-14", Description:"Misc Expenses", Type:"Payment", Amount:60, Account:"miscellaneous expense"}, // replaced 'misc'
+  {Date:"2025-08-12", Description:"Legal Fee", Type:"Payment", Amount:250, Account:"legal & professional fees"},
+  {Date:"2025-08-13", Description:"Printing Flyers", Type:"Payment", Amount:150, Account:"marketing & advertising"},
+  {Date:"2025-08-14", Description:"Misc Expenses", Type:"Payment", Amount:60, Account:"miscellaneous expense"},
   {Date:"2025-08-15", Description:"Owner Capital Contribution", Type:"Receipt", Amount:1000, Account:"capital"},
   {Date:"2025-08-16", Description:"Owner Drawing", Type:"Payment", Amount:200, Account:"drawing"},
   {Date:"2025-08-17", Description:"Bank Interest Income", Type:"Receipt", Amount:75, Account:"interest"},
-  {Date:"2025-08-18", Description:"Loan Repayment", Type:"Payment", Amount:500, Account:"short term loans"} // replaced 'loan'
+  {Date:"2025-08-18", Description:"Loan Repayment", Type:"Payment", Amount:500, Account:"short term loans"}
 ];
 
 const accountCodes = {
@@ -281,7 +362,7 @@ const accountCodes = {
   "Extraordinary": { min: 8000, max: 8999, description: "Extraordinary Items" }
 };
 
-const accountMapping = {
+const defaultAccountMapping = {
    // Assets
   "cash": 1000, "bank": 1010, "petty cash": 1020,
   "accounts receivable": 1100, "allowance doubtful accounts": 1110,
@@ -331,15 +412,18 @@ const accountMapping = {
   "extraordinary gains": 8100, "extraordinary losses": 8200
 };
 
+function getAccountMapping() {
+    return { ...defaultAccountMapping, ...customAccounts };
+}
+
 function detectAccount(description) {
+    const accountMapping = getAccountMapping();
     const lower = description ? description.toLowerCase() : "";
     for (const acc in accountMapping) {
         if (lower.includes(acc.toLowerCase())) return acc;
     }
-    return "miscellaneous expense"; // ✅ fallback
+    return "miscellaneous expense";
 }
-
-
 
 function getAccountTypeByCode(code) {
     for (const [type, range] of Object.entries(accountCodes)) {
@@ -378,9 +462,10 @@ function populateSample() {
         <th>Category</th>
     </tr>`;
 
- sampleData.forEach(row => {
-    const code = accountMapping[row.Account] || 0;   // single code
-    const category = getAccountTypeByCode(code);     // get category from code
+    const accountMapping = getAccountMapping();
+    sampleData.forEach(row => {
+        const code = accountMapping[row.Account] || 0;
+        const category = getAccountTypeByCode(code);
 
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${row.Date}</td>
@@ -393,8 +478,6 @@ function populateSample() {
         table.appendChild(tr);
     });
 }
-
-
 
 function validateSheet(data){
     const required = ["Date","Description","Type","Amount"];
@@ -429,9 +512,11 @@ function displaySheet(data){
         <th>Date</th><th>Description</th><th>Type</th><th>Amount</th>
         <th>Account</th><th>Code</th><th>Category</th>
     </tr>`;
+    
+    const accountMapping = getAccountMapping();
     data.forEach(row => {
         const account = detectAccount(row.Description);
-        const code = accountMapping[account] || 6600; // fallback to Misc Expense
+        const code = accountMapping[account] || 6600;
         const category = getAccountTypeByCode(code);
 
         const tr = document.createElement('tr');
@@ -446,14 +531,12 @@ function displaySheet(data){
     });
 }
 
-
- 
-
 function generateJournal(){
     if(sheetData.length===0){ alert("Load data first!"); return; }
     journal = [];
     ledger = {};
-    const counterAccount = document.getElementById('counterAccount').value || "Cash";
+    const counterAccount = document.getElementById('counterAccount').value || "cash";
+    const accountMapping = getAccountMapping();
 
     sheetData.forEach(row => {
         const acc = detectAccount(row.Description);
@@ -464,9 +547,9 @@ function generateJournal(){
 
         if(row.Type.toLowerCase()==="payment"){
             journal.push({Date:date,Account:acc,Code:code,Category:category,Debit:amount,Credit:0,Description:row.Description});
-            journal.push({Date:date,Account:counterAccount,Code:0,Category:"Cash",Debit:0,Credit:amount,Description:row.Description});
+            journal.push({Date:date,Account:counterAccount,Code:accountMapping[counterAccount] || 1000,Category:"Asset",Debit:0,Credit:amount,Description:row.Description});
         } else {
-            journal.push({Date:date,Account:counterAccount,Code:0,Category:"Cash",Debit:amount,Credit:0,Description:row.Description});
+            journal.push({Date:date,Account:counterAccount,Code:accountMapping[counterAccount] || 1000,Category:"Asset",Debit:amount,Credit:0,Description:row.Description});
             journal.push({Date:date,Account:acc,Code:code,Category:category,Debit:0,Credit:amount,Description:row.Description});
         }
     });
@@ -474,32 +557,24 @@ function generateJournal(){
     alert("Journal generated!");
 }
 
-function displayLedger() {
-    const table = document.getElementById('ledgerTable');
-    table.innerHTML = '<tr><th>Account</th><th>Code</th><th>Category</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>';
+function displayJournal() {
+    const table = document.getElementById('journalTable');
+    table.innerHTML = '<tr><th>Date</th><th>Account</th><th>Code</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th></tr>';
 
     const fragment = document.createDocumentFragment();
-    for (const acc in ledger) {
-        let balance = 0;
-        ledger[acc].forEach(entry => {
-            balance += (entry.Debit || 0) - (entry.Credit || 0);
-            const code = getCodeRange(entry.Account); // ✅ FIXED
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${entry.Account}</td>
-                            <td>${code}</td>
-                            <td>${entry.Category}</td>
-                            <td>${entry.Date}</td>
-                            <td>${entry.Description}</td>
-                            <td class="debit">${(entry.Debit||0).toFixed(2)}</td>
-                            <td class="credit">${(entry.Credit||0).toFixed(2)}</td>
-                            <td>${balance.toFixed(2)}</td>`;
-            fragment.appendChild(tr);
-        });
-    }
+    journal.forEach(entry => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${entry.Date}</td>
+                        <td>${entry.Account}</td>
+                        <td>${entry.Code}</td>
+                        <td>${entry.Category}</td>
+                        <td class="debit">${entry.Debit || ''}</td>
+                        <td class="credit">${entry.Credit || ''}</td>
+                        <td>${entry.Description}</td>`;
+        fragment.appendChild(tr);
+    });
     table.appendChild(fragment);
 }
-
 
 function generateLedger(){
     if(journal.length===0){ alert("Generate journal first!"); return; }
@@ -521,11 +596,10 @@ function displayLedger() {
         let balance = 0;
         ledger[acc].forEach(entry => {
             balance += (entry.Debit || 0) - (entry.Credit || 0);
-            const range = getCodeRange(entry.Account);
             const tr = document.createElement('tr');
             tr.innerHTML = `<td>${entry.Account}</td>
-                            <td>${code}</td>
-                         <td>${entry.Category}</td>
+                            <td>${entry.Code}</td>
+                            <td>${entry.Category}</td>
                             <td>${entry.Date}</td>
                             <td>${entry.Description}</td>
                             <td class="debit">${(entry.Debit||0).toFixed(2)}</td>
@@ -546,7 +620,7 @@ function downloadJournal(){
     const exportData = journal.map(entry => ({
         Date: entry.Date,
         Account: entry.Account,
-        CodeRange: getCodeRange(entry.Account),
+        Code: entry.Code,
         Category: entry.Category,
         Debit: entry.Debit,
         Credit: entry.Credit,
@@ -567,37 +641,33 @@ function downloadLedger(){
 
     const monthlyLedger = {};
 
-  for(const acc in ledger){
-    ledger[acc].forEach(entry => {
-        const dateObj = new Date(entry.Date);
-        const ym = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2,'0')}`;
-        if(!monthlyLedger[ym]) monthlyLedger[ym] = [];
+    for(const acc in ledger){
+        ledger[acc].forEach(entry => {
+            const dateObj = new Date(entry.Date);
+            const ym = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2,'0')}`;
+            if(!monthlyLedger[ym]) monthlyLedger[ym] = [];
 
-        // calculate balance separately inside each month
-        let balance = 0;
-        monthlyLedger[ym].push({
-            Account: acc,
-            CodeRange: getCodeRange(acc),
-            Category: entry.Category,
-            Date: entry.Date,
-            Description: entry.Description,
-            Debit: entry.Debit || 0,
-            Credit: entry.Credit || 0,
-            Balance: 0 // placeholder, we’ll recalc below
+            monthlyLedger[ym].push({
+                Account: acc,
+                Code: entry.Code,
+                Category: entry.Category,
+                Date: entry.Date,
+                Description: entry.Description,
+                Debit: entry.Debit || 0,
+                Credit: entry.Credit || 0,
+                Balance: 0
+            });
         });
-    });
-}
+    }
 
-// Recalculate balance per month
-for(const ym in monthlyLedger){
-    let balances = {};
-    monthlyLedger[ym] = monthlyLedger[ym].map(entry => {
-        if(!balances[entry.Account]) balances[entry.Account] = 0;
-        balances[entry.Account] += (entry.Debit || 0) - (entry.Credit || 0);
-        return {...entry, Balance: balances[entry.Account]};
-    });
-}
-
+    for(const ym in monthlyLedger){
+        let balances = {};
+        monthlyLedger[ym] = monthlyLedger[ym].map(entry => {
+            if(!balances[entry.Account]) balances[entry.Account] = 0;
+            balances[entry.Account] += (entry.Debit || 0) - (entry.Credit || 0);
+            return {...entry, Balance: balances[entry.Account]};
+        });
+    }
 
     for(const month in monthlyLedger){
         const ws = XLSX.utils.json_to_sheet(monthlyLedger[month]);
@@ -608,7 +678,6 @@ for(const ym in monthlyLedger){
 
     alert("Ledger exported as monthly files!");
 }
-
 
 function exportPlatform() {
     if (!journal || journal.length === 0) {
@@ -628,7 +697,7 @@ function exportPlatform() {
         exportData = journal.map(entry => ({
             "Date": entry.Date,
             "Account Name": entry.Account,
-            "CodeRange": getCodeRange(entry.Account),  // use general code range
+            "Code": entry.Code,
             "Category": entry.Category,
             "Debit": entry.Debit,
             "Credit": entry.Credit,
@@ -638,7 +707,7 @@ function exportPlatform() {
         exportData = journal.map(entry => ({
             "TxnDate": entry.Date,
             "Account": entry.Account,
-            "CodeRange": getCodeRange(entry.Account),  // use general code range
+            "Code": entry.Code,
             "Category": entry.Category,
             "Debit": entry.Debit,
             "Credit": entry.Credit,
@@ -647,7 +716,7 @@ function exportPlatform() {
     } else if (platform === "sage") {
         exportData = journal.map(entry => ({
             "Date": entry.Date,
-            "NominalCodeRange": getCodeRange(entry.Account), // use general code range
+            "NominalCode": entry.Code,
             "Category": entry.Category,
             "Description": entry.Description,
             "DebitAmount": entry.Debit || 0,
@@ -655,7 +724,6 @@ function exportPlatform() {
         }));
     }
 
-    // Convert to CSV
     function convertToCSV(objArray) {
         const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
         let str = '';
@@ -674,7 +742,6 @@ function exportPlatform() {
         return str;
     }
 
-    // Trigger download
     const csv = convertToCSV(exportData);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
@@ -687,13 +754,10 @@ function exportPlatform() {
     alert(`Journal exported for ${platform}!`);
 }
 
-
-function getCodeRange(account) {
-    return accountMapping[account] || 0; // single code
-}
 function downloadSample() {
+    const accountMapping = getAccountMapping();
     const sampleDataWithCodes = sampleData.map(row => {
-        const code = getCodeRange(row.Account); 
+        const code = accountMapping[row.Account] || 0;
         const category = getAccountTypeByCode(code);
         return {
             Date: row.Date,
@@ -713,140 +777,172 @@ function downloadSample() {
     const legendData = [
         { Category: "Cash (Asset)", Code: 1000 },
         { Category: "Bank (Asset)", Code: 1010 },
-        // ... keep rest of legend here
+        { Category: "Petty Cash (Asset)", Code: 1020 },
+        { Category: "Accounts Receivable (Asset)", Code: 1100 },
+        { Category: "Allowance Doubtful Accounts (Asset)", Code: 1110 },
+        { Category: "Inventory (Asset)", Code: 1200 },
+        { Category: "Raw Materials (Asset)", Code: 1210 },
+        { Category: "Work In Progress (Asset)", Code: 1220 },
+        { Category: "Finished Goods (Asset)", Code: 1230 },
+        { Category: "Prepaid Expenses (Asset)", Code: 1300 },
+        { Category: "Fixed Assets (Asset)", Code: 1400 },
+        { Category: "Accumulated Depreciation (Asset)", Code: 1410 },
+        { Category: "Buildings (Asset)", Code: 1420 },
+        { Category: "Vehicles (Asset)", Code: 1430 },
+        { Category: "Office Equipment (Asset)", Code: 1440 },
+        { Category: "Intangible Assets (Asset)", Code: 1500 },
+        { Category: "Other Current Assets (Asset)", Code: 1600 },
+        
+        { Category: "Accounts Payable (Liability)", Code: 2000 },
+        { Category: "Credit Cards (Liability)", Code: 2100 },
+        { Category: "Accrued Expenses (Liability)", Code: 2200 },
+        { Category: "Taxes Payable (Liability)", Code: 2300 },
+        { Category: "Short Term Loans (Liability)", Code: 2400 },
+        { Category: "Long Term Debt (Liability)", Code: 2500 },
+        { Category: "Employee Benefits Payable (Liability)", Code: 2600 },
+        { Category: "Unearned Revenue (Liability)", Code: 2700 },
+        { Category: "Other Current Liabilities (Liability)", Code: 2800 },
+        
+        { Category: "Capital (Equity)", Code: 3000 },
+        { Category: "Retained Earnings (Equity)", Code: 3100 },
+        { Category: "Drawing (Equity)", Code: 3200 },
+        { Category: "Additional Paid-In Capital (Equity)", Code: 3300 },
+        { Category: "Reserves (Equity)", Code: 3400 },
+        { Category: "Treasury Shares (Equity)", Code: 3500 },
+        
+        { Category: "Sale (Revenue)", Code: 4000 },
+        { Category: "Product Sales (Revenue)", Code: 4010 },
+        { Category: "Service Revenue (Revenue)", Code: 4020 },
+        { Category: "Rental Income (Revenue)", Code: 4100 },
+        { Category: "Interest (Revenue)", Code: 4200 },
+        { Category: "Other Operating Income (Revenue)", Code: 4300 },
+        
+        { Category: "Return (Contra Revenue)", Code: 4500 },
+        { Category: "Discount Allowed (Contra Revenue)", Code: 4510 },
+        
+        { Category: "Cost of Goods Sold (Operating Expense)", Code: 5000 },
+        { Category: "Direct Materials (Operating Expense)", Code: 5100 },
+        { Category: "Raw Material Purchases (Operating Expense)", Code: 5110 },
+        { Category: "Direct Labor (Operating Expense)", Code: 5120 },
+        { Category: "Manufacturing Overhead (Operating Expense)", Code: 5200 },
+        { Category: "Factory Rent (Operating Expense)", Code: 5210 },
+        { Category: "Factory Utilities (Operating Expense)", Code: 5220 },
+        
+        { Category: "Salaries & Wages (Operating Expense)", Code: 5300 },
+        { Category: "Employee Benefits (Operating Expense)", Code: 5310 },
+        { Category: "Rent Expense (Operating Expense)", Code: 5400 },
+        { Category: "Utilities (Operating Expense)", Code: 5410 },
+        { Category: "Electricity (Operating Expense)", Code: 5411 },
+        { Category: "Water (Operating Expense)", Code: 5412 },
+        { Category: "Internet/Communication (Operating Expense)", Code: 5413 },
+        { Category: "Insurance (Operating Expense)", Code: 5500 },
+        { Category: "Depreciation Expense (Operating Expense)", Code: 5600 },
+        { Category: "Marketing & Advertising (Operating Expense)", Code: 5700 },
+        { Category: "Office Supplies (Operating Expense)", Code: 5800 },
+        { Category: "Travel & Entertainment (Operating Expense)", Code: 5900 },
+        
+        { Category: "Legal & Professional Fees (Administrative Expense)", Code: 6000 },
+        { Category: "Training & Development (Administrative Expense)", Code: 6100 },
+        { Category: "Repairs & Maintenance (Administrative Expense)", Code: 6200 },
+        { Category: "Communication Expense (Administrative Expense)", Code: 6300 },
+        { Category: "Bank Charges (Administrative Expense)", Code: 6400 },
+        { Category: "Software Subscriptions (Administrative Expense)", Code: 6500 },
+        { Category: "Miscellaneous Expense (Administrative Expense)", Code: 6600 },
+        
+        { Category: "Interest Expense (Other Income/Expense)", Code: 7100 },
+        { Category: "Gain/Loss on Asset Disposal (Other Income/Expense)", Code: 7200 },
+        { Category: "Foreign Exchange Gain/Loss (Other Income/Expense)", Code: 7300 },
+        
+        { Category: "Extraordinary Gains (Extraordinary/Non-Operating)", Code: 8100 },
         { Category: "Extraordinary Losses (Extraordinary/Non-Operating)", Code: 8200 }
-    ]; // ✅ removed extra ];
-
-    const wsLegend = XLSX.utils.json_to_sheet(legendData, {
-        header: ["Category", "Code"]
-    });
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, wsSample, "Sample Data");
-    XLSX.utils.book_append_sheet(wb, wsLegend, "Code Legend");
-    XLSX.writeFile(wb, "SamplePettyCash.xlsx");
-}
-
-
-    // Prepare legend data
-    const legendData = [
-  { Category: "Cash (Asset)", Code: 1000 },
-  { Category: "Bank (Asset)", Code: 1010 },
-  { Category: "Petty Cash (Asset)", Code: 1020 },
-  { Category: "Accounts Receivable (Asset)", Code: 1100 },
-  { Category: "Allowance Doubtful Accounts (Asset)", Code: 1110 },
-  { Category: "Inventory (Asset)", Code: 1200 },
-  { Category: "Raw Materials (Asset)", Code: 1210 },
-  { Category: "Work In Progress (Asset)", Code: 1220 },
-  { Category: "Finished Goods (Asset)", Code: 1230 },
-  { Category: "Prepaid Expenses (Asset)", Code: 1300 },
-  { Category: "Fixed Assets (Asset)", Code: 1400 },
-  { Category: "Accumulated Depreciation (Asset)", Code: 1410 },
-  { Category: "Buildings (Asset)", Code: 1420 },
-  { Category: "Vehicles (Asset)", Code: 1430 },
-  { Category: "Office Equipment (Asset)", Code: 1440 },
-  { Category: "Intangible Assets (Asset)", Code: 1500 },
-  { Category: "Other Current Assets (Asset)", Code: 1600 },
-  
-  { Category: "Accounts Payable (Liability)", Code: 2000 },
-  { Category: "Credit Cards (Liability)", Code: 2100 },
-  { Category: "Accrued Expenses (Liability)", Code: 2200 },
-  { Category: "Taxes Payable (Liability)", Code: 2300 },
-  { Category: "Short Term Loans (Liability)", Code: 2400 },
-  { Category: "Long Term Debt (Liability)", Code: 2500 },
-  { Category: "Employee Benefits Payable (Liability)", Code: 2600 },
-  { Category: "Unearned Revenue (Liability)", Code: 2700 },
-  { Category: "Other Current Liabilities (Liability)", Code: 2800 },
-  
-  { Category: "Capital (Equity)", Code: 3000 },
-  { Category: "Retained Earnings (Equity)", Code: 3100 },
-  { Category: "Drawing (Equity)", Code: 3200 },
-  { Category: "Additional Paid-In Capital (Equity)", Code: 3300 },
-  { Category: "Reserves (Equity)", Code: 3400 },
-  { Category: "Treasury Shares (Equity)", Code: 3500 },
-  
-  { Category: "Sale (Revenue)", Code: 4000 },
-  { Category: "Product Sales (Revenue)", Code: 4010 },
-  { Category: "Service Revenue (Revenue)", Code: 4020 },
-  { Category: "Rental Income (Revenue)", Code: 4100 },
-  { Category: "Interest (Revenue)", Code: 4200 },
-  { Category: "Other Operating Income (Revenue)", Code: 4300 },
-  
-  { Category: "Return (Contra Revenue)", Code: 4500 },
-  { Category: "Discount Allowed (Contra Revenue)", Code: 4510 },
-  
-  { Category: "Cost of Goods Sold (Operating Expense)", Code: 5000 },
-  { Category: "Direct Materials (Operating Expense)", Code: 5100 },
-  { Category: "Raw Material Purchases (Operating Expense)", Code: 5110 },
-  { Category: "Direct Labor (Operating Expense)", Code: 5120 },
-  { Category: "Manufacturing Overhead (Operating Expense)", Code: 5200 },
-  { Category: "Factory Rent (Operating Expense)", Code: 5210 },
-  { Category: "Factory Utilities (Operating Expense)", Code: 5220 },
-  
-  { Category: "Salaries & Wages (Operating Expense)", Code: 5300 },
-  { Category: "Employee Benefits (Operating Expense)", Code: 5310 },
-  { Category: "Rent Expense (Operating Expense)", Code: 5400 },
-  { Category: "Utilities (Operating Expense)", Code: 5410 },
-  { Category: "Electricity (Operating Expense)", Code: 5411 },
-  { Category: "Water (Operating Expense)", Code: 5412 },
-  { Category: "Internet/Communication (Operating Expense)", Code: 5413 },
-  { Category: "Insurance (Operating Expense)", Code: 5500 },
-  { Category: "Depreciation Expense (Operating Expense)", Code: 5600 },
-  { Category: "Marketing & Advertising (Operating Expense)", Code: 5700 },
-  { Category: "Office Supplies (Operating Expense)", Code: 5800 },
-  { Category: "Travel & Entertainment (Operating Expense)", Code: 5900 },
-  
-  { Category: "Legal & Professional Fees (Administrative Expense)", Code: 6000 },
-  { Category: "Training & Development (Administrative Expense)", Code: 6100 },
-  { Category: "Repairs & Maintenance (Administrative Expense)", Code: 6200 },
-  { Category: "Communication Expense (Administrative Expense)", Code: 6300 },
-  { Category: "Bank Charges (Administrative Expense)", Code: 6400 },
-  { Category: "Software Subscriptions (Administrative Expense)", Code: 6500 },
-  { Category: "Miscellaneous Expense (Administrative Expense)", Code: 6600 },
-  
-  { Category: "Interest Expense (Other Income/Expense)", Code: 7100 },
-  { Category: "Gain/Loss on Asset Disposal (Other Income/Expense)", Code: 7200 },
-  { Category: "Foreign Exchange Gain/Loss (Other Income/Expense)", Code: 7300 },
-  
-  { Category: "Extraordinary Gains (Extraordinary/Non-Operating)", Code: 8100 },
-  { Category: "Extraordinary Losses (Extraordinary/Non-Operating)", Code: 8200 }
-];
-
     ];
 
-    // Create worksheet for legend
     const wsLegend = XLSX.utils.json_to_sheet(legendData, {
         header: ["Category", "Code"]
     });
 
-    // Create workbook and append sheets
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, wsSample, "Sample Data");
     XLSX.utils.book_append_sheet(wb, wsLegend, "Code Legend");
-
-    // Export file
     XLSX.writeFile(wb, "SamplePettyCash.xlsx");
 }
 
+function addCustomAccount() {
+    const name = document.getElementById('customAccountName').value.trim().toLowerCase();
+    const code = parseInt(document.getElementById('customAccountCode').value);
+    const category = document.getElementById('customAccountCategory').value;
+    
+    if (!name || !code || !category) {
+        alert('Please fill in all fields');
+        return;
+    }
+    
+    const codeRanges = {
+        'asset': { min: 1000, max: 1999 },
+        'liability': { min: 2000, max: 2999 },
+        'equity': { min: 3000, max: 3999 },
+        'revenue': { min: 4000, max: 4499 },
+        'expense': { min: 5000, max: 6999 }
+    };
+    
+    const range = codeRanges[category];
+    if (code < range.min || code > range.max) {
+        alert(`Code must be between ${range.min} and ${range.max} for ${category}`);
+        return;
+    }
+    
+    customAccounts[name] = code;
+    
+    document.getElementById('customAccountName').value = '';
+    document.getElementById('customAccountCode').value = '';
+    document.getElementById('customAccountCategory').value = '';
+    
+    displayCustomAccounts();
+    populateSample();
+    alert('Custom account added successfully!');
+}
+
+function removeCustomAccount(accountName) {
+    delete customAccounts[accountName];
+    displayCustomAccounts();
+    populateSample();
+}
+
+function displayCustomAccounts() {
+    const container = document.getElementById('customAccountsList');
+    
+    if (Object.keys(customAccounts).length === 0) {
+        container.innerHTML = '<p>No custom accounts added yet.</p>';
+        return;
+    }
+    
+    let html = '';
+    for (const [name, code] of Object.entries(customAccounts)) {
+        const category = getAccountTypeByCode(code);
+        html += `
+            <div class="account-item">
+                <span><strong>${name}</strong> - ${code} (${category})</span>
+                <button class="remove-btn" onclick="removeCustomAccount('${name}')">Remove</button>
+            </div>
+        `;
+    }
+    container.innerHTML = html;
+}
 
 function openTab(evt, tabName) {
-    // Hide all tab contents
     const tabContents = document.getElementsByClassName("tabContent");
     for (let i = 0; i < tabContents.length; i++) tabContents[i].style.display = "none";
 
-    // Remove active class
     const tabButtons = document.getElementsByClassName("tabButton");
     for (let i = 0; i < tabButtons.length; i++) tabButtons[i].classList.remove("active");
 
-    // Show selected tab
     document.getElementById(tabName).style.display = "block";
     evt.currentTarget.classList.add("active");
 
-    // Only display if data exists
     if (tabName === "journalTab" && journal.length > 0) displayJournal();
     if (tabName === "ledgerTab" && Object.keys(ledger).length > 0) displayLedger();
+    if (tabName === "customTab") displayCustomAccounts();
 }
-
 
 window.onload = function() {
     populateSample();
@@ -859,34 +955,7 @@ document.getElementById('getStartedBtn').addEventListener('click', () => {
     document.querySelector('header').style.display = 'block';
 });
 
-
-
 </script>
-
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
