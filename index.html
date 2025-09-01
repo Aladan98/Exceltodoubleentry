@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Excel Migration Tool</title>
+<title>LEDGIOX - Excel Migration Tool</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 body {
@@ -12,6 +12,7 @@ body {
     color: #e0e0e0;
     margin: 0;
 }
+
 /* Welcome Page Styles */
 #welcomePage {
     display: flex;
@@ -31,7 +32,8 @@ body {
 #welcomePage p {
     font-size: 1.2rem;
     margin-bottom: 30px;
-    max-width: 400px;
+    max-width: 600px;
+    line-height: 1.4;
 }
 #welcomePage button {
     padding: 15px 30px;
@@ -41,10 +43,12 @@ body {
     border: none;
     border-radius: 10px;
     cursor: pointer;
+    transition: 0.2s;
 }
 #welcomePage button:hover {
     background: #00c853;
 }
+
 header {
     background: #1f1f1f;
     color: #00e676;
@@ -53,8 +57,9 @@ header {
     font-weight: bold;
     box-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
+
 main {
-    display: none; /* Hide initially */
+    display: none;
     flex-wrap: wrap;
     padding: 20px;
     gap: 20px;
@@ -71,6 +76,7 @@ main {
     gap: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.6);
 }
+
 .sidebar button, .sidebar input, .sidebar select {
     padding: 10px;
     font-size: 1rem;
@@ -78,26 +84,31 @@ main {
     border: none;
     cursor: pointer;
 }
+
 .sidebar button {
     background: #00e676;
     color: #121212;
     font-weight: bold;
     transition: 0.2s;
 }
+
 .sidebar button:hover {
     background: #00c853;
 }
+
 .sidebar input, .sidebar select {
     background: #2a2a2a;
     color: #e0e0e0;
+    border: 1px solid #333;
 }
+
 .content {
     flex: 1;
     min-width: 300px;
     display: flex;
     flex-direction: column;
     gap: 20px;
-    height: calc(100vh - 60px); /* Fill viewport minus header height */
+    height: calc(100vh - 60px);
 }
 
 table {
@@ -119,50 +130,59 @@ th {
     position: sticky;
     top: 0;
 }
+
 tr:nth-child(even) {
     background: #1a1a1a;
 }
+
 tr:hover {
     background: #333;
 }
+
 .scrollable {
-    flex: 1;           /* Grow to fill remaining space */
-    overflow-y: auto;  /* Scroll if content exceeds height */
+    flex: 1;
+    overflow-y: auto;
     border-radius: 10px;
 }
 
 .debit { color: #00e676; font-weight: bold; }
 .credit { color: #ff5252; font-weight: bold; }
 .highlight { background: #ff9800 !important; color: #000; }
+
 @media(max-width: 768px){
     main { flex-direction: column; }
     .sidebar { width: 100%; }
 }
 
 .tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
 }
+
 .tabButton {
-  padding: 10px 20px;
-  background: #1a1a1a;
-  color: #e0e0e0;
-  border: none;
-  border-radius: 5px 5px 0 0;
-  cursor: pointer;
-  font-weight: bold;
-  transition: 0.2s;
+    padding: 10px 20px;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    border: none;
+    border-radius: 5px 5px 0 0;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
 }
+
 .tabButton.active {
-  background: #00e676;
-  color: #121212;
+    background: #00e676;
+    color: #121212;
 }
+
 .tabButton:hover {
-  background: #00c853;
+    background: #00c853;
 }
+
 .tabContent {
-  display: none;
+    display: none;
 }
 
 .custom-account-form {
@@ -171,23 +191,29 @@ tr:hover {
     border-radius: 10px;
     margin-bottom: 20px;
 }
+
 .custom-account-form h3 {
     color: #00e676;
     margin-bottom: 15px;
 }
+
 .form-row {
     display: flex;
     gap: 10px;
     margin-bottom: 10px;
+    flex-wrap: wrap;
 }
+
 .form-row input, .form-row select {
     flex: 1;
+    min-width: 150px;
     padding: 8px;
     background: #1a1a1a;
     color: #e0e0e0;
     border: 1px solid #333;
     border-radius: 5px;
 }
+
 .custom-accounts-list {
     background: #1a1a1a;
     padding: 15px;
@@ -195,16 +221,21 @@ tr:hover {
     max-height: 300px;
     overflow-y: auto;
 }
+
 .account-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 8px;
     border-bottom: 1px solid #333;
+    flex-wrap: wrap;
+    gap: 10px;
 }
+
 .account-item:last-child {
     border-bottom: none;
 }
+
 .remove-btn {
     background: #ff5252;
     color: white;
@@ -214,33 +245,110 @@ tr:hover {
     cursor: pointer;
     font-size: 0.8rem;
 }
+
 .remove-btn:hover {
     background: #d32f2f;
+}
+
+/* Edit buttons for journal entries */
+.edit-btn {
+    background: #00e676;
+    color: #121212;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-right: 5px;
+}
+
+.edit-btn:hover {
+    background: #00c853;
+}
+
+.save-btn {
+    background: #4caf50;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-right: 5px;
+}
+
+.cancel-btn {
+    background: #ff5252;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.edit-input, .edit-select {
+    background: #2a2a2a;
+    color: #e0e0e0;
+    border: 1px solid #333;
+    padding: 4px;
+    border-radius: 3px;
+    width: 100%;
+}
+
+.instructions-content {
+    background: #1f1f1f;
+    padding: 20px;
+    border-radius: 10px;
+    line-height: 1.6;
+}
+
+.instructions-content h2 {
+    color: #00e676;
+    margin-bottom: 20px;
+}
+
+.instructions-content h3 {
+    color: #00e676;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.instructions-content ul {
+    margin-left: 20px;
+}
+
+.instructions-content li {
+    margin-bottom: 5px;
+}
+
+.total-row {
+    background: #333 !important;
+    font-weight: bold;
+    color: #00e676;
 }
 
 </style>
 </head>
 <body>
     <!-- Welcome Page -->
-<div id="welcomePage" style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background:#121212; color:#00e676; text-align:center; padding:20px;">
-    <h1 style="font-size:3rem; margin-bottom:20px;">Welcome to LEDGIOX</h1>
-    <p style="font-size:1rem; margin-bottom:30px; max-width:500px;">
-                     LEDGIOX is made by accountant, for accountants. 
-          Quickly convert your Excel or CSV data into accurate Journal Entries and a complete General Ledger. 
-                      Save time, reduce errors, and streamline your workflow. 
-            Upload, generate, and export effortlessly to platforms like Zoho, QuickBooks, or Sage.
-                    For suggestions or feedback, email us at ledgiox@gmail.com
+<div id="welcomePage">
+    <h1>Welcome to LEDGIOX</h1>
+    <p>
+        LEDGIOX is made by accountants, for accountants. 
+        Quickly convert your Excel or CSV data into accurate Journal Entries and a complete General Ledger. 
+        Save time, reduce errors, and streamline your workflow. 
+        Upload, generate, and export effortlessly to platforms like Zoho, QuickBooks, or Sage.
+        For suggestions or feedback, email us at ledgiox@gmail.com
     </p>
-    <button id="getStartedBtn" style="padding:15px 30px; font-size:1.2rem; background:#00e676; color:#121212; border:none; border-radius:10px; cursor:pointer;">
-        Get Started
-    </button>
+    <button id="getStartedBtn">Get Started</button>
 </div>
 
 <header style="display:none;">LEDGIOX</header>
 <main>
   <div class="sidebar">
     <label for="counterAccount">Counter Account</label>
-    <input type="text" id="counterAccount" placeholder="Counter Account e.g. Bank">
+    <input type="text" id="counterAccount" placeholder="Counter Account e.g. Cash or Bank">
     <label for="fileInput">Upload Excel/CSV</label>
     <input type="file" id="fileInput" accept=".xlsx,.csv">
     <button onclick="loadExcel()">Load Excel</button>
@@ -248,6 +356,7 @@ tr:hover {
     <button onclick="generateLedger()">Generate General Ledger</button>
     <button onclick="downloadJournal()">Download Journal</button>
     <button onclick="downloadLedger()">Download Ledger</button>
+    <button onclick="downloadTrialBalance()">Download Trial Balance</button>
     <button onclick="downloadSample()">Download Sample Excel</button>
     <label for="platformSelect">Export to Platform</label>
     <select id="platformSelect">
@@ -262,71 +371,123 @@ tr:hover {
   <div class="content">
     <!-- Tabs -->
     <div class="tabs">
-      <button class="tabButton active" onclick="openTab(event, 'sampleTab')">Sample Excel</button>
+      <button class="tabButton active" onclick="openTab(event, 'instructionsTab')">Instructions</button>
+      <button class="tabButton" onclick="openTab(event, 'sampleTab')">Sample Excel</button>
       <button class="tabButton" onclick="openTab(event, 'journalTab')">Journal Entries</button>
       <button class="tabButton" onclick="openTab(event, 'ledgerTab')">General Ledger</button>
+      <button class="tabButton" onclick="openTab(event, 'trialBalanceTab')">Trial Balance</button>
       <button class="tabButton" onclick="openTab(event, 'customTab')">Custom Accounts</button>
     </div>
 
-<div id="sampleTab" class="tabContent">
-  <div class="scrollable">
-    <table id="sampleTable">
-        <tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Account</th><th>Code</th><th>Category</th></tr>
-    </table>
-  </div>
-</div>
+    <!-- Instructions Tab -->
+    <div id="instructionsTab" class="tabContent">
+      <div class="instructions-content">
+        <h2>How to Use LEDGIOX</h2>
+        
+        <h3>1. Prepare Your Data</h3>
+        <p>Your Excel/CSV file must have these columns: <strong>Date, Description, Type (Payment/Receipt), Amount</strong></p>
+        <p>Optionally include a <strong>Code</strong> column with accounting numbers (1000-8999) for automatic account classification</p>
+        
+        <h3>2. Account Code System</h3>
+        <ul>
+          <li><strong>1000-1999:</strong> Assets (Cash, Bank, Equipment, etc.)</li>
+          <li><strong>2000-2999:</strong> Liabilities (Loans, Payables, etc.)</li>
+          <li><strong>3000-3999:</strong> Equity (Capital, Drawings, etc.)</li>
+          <li><strong>4000-4499:</strong> Revenue (Sales, Income, etc.)</li>
+          <li><strong>4500-4599:</strong> Contra Revenue (Returns, Discounts)</li>
+          <li><strong>5000-5999:</strong> Operating Expenses</li>
+          <li><strong>6000-6999:</strong> Administrative Expenses</li>
+          <li><strong>7000-7999:</strong> Other Income/Expenses</li>
+          <li><strong>8000-8999:</strong> Extraordinary Items</li>
+        </ul>
+        
+        <h3>3. Upload & Process</h3>
+        <ol>
+          <li>Set your counter account (usually Cash or Bank)</li>
+          <li>Upload your Excel/CSV file</li>
+          <li>Generate Journal Entries (edit if needed)</li>
+          <li>Generate General Ledger and Trial Balance</li>
+          <li>Export to your accounting platform</li>
+        </ol>
 
-<div id="journalTab" class="tabContent">
-  <div class="scrollable">
-    <table id="journalTable">
-        <tr><th>Date</th><th>Account</th><th>Code</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th></tr>
-    </table>
-  </div>
-</div>
-
-<div id="ledgerTab" class="tabContent">
-  <div class="scrollable">
-    <table id="ledgerTable">
-        <tr><th>Account</th><th>Code</th><th>Category</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
-    </table>
-  </div>
-</div>
-
-<div id="customTab" class="tabContent">
-  <div class="custom-account-form">
-    <h3>Add Custom Account</h3>
-    <div class="form-row">
-      <input type="text" id="customAccountName" placeholder="Account Name (e.g. custom inventory)">
-      <input type="number" id="customAccountCode" placeholder="Account Code">
-      <select id="customAccountCategory">
-        <option value="">Select Category</option>
-        <option value="asset">Asset (1000-1999)</option>
-        <option value="liability">Liability (2000-2999)</option>
-        <option value="equity">Equity (3000-3999)</option>
-        <option value="revenue">Revenue (4000-4499)</option>
-        <option value="expense">Expense (5000-6999)</option>
-      </select>
-      <button onclick="addCustomAccount()">Add</button>
+        <h3>4. Editing Journal Entries</h3>
+        <p>Click the edit button on any journal entry to modify accounts, amounts, or reclassify transactions. Changes automatically update the ledger and trial balance.</p>
+      </div>
     </div>
-  </div>
-  
-  <div class="custom-accounts-list">
-    <h3>Custom Accounts</h3>
-    <div id="customAccountsList">
-      <p>No custom accounts added yet.</p>
+
+    <!-- Sample Excel Tab -->
+    <div id="sampleTab" class="tabContent">
+      <div class="scrollable">
+        <table id="sampleTable">
+            <tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Account</th><th>Code</th><th>Category</th></tr>
+        </table>
+      </div>
     </div>
-  </div>
-</div>
+
+    <!-- Journal Entries Tab -->
+    <div id="journalTab" class="tabContent">
+      <div class="scrollable">
+        <table id="journalTable">
+            <tr><th>Date</th><th>Account</th><th>Code</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th><th>Actions</th></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- General Ledger Tab -->
+    <div id="ledgerTab" class="tabContent">
+      <div class="scrollable">
+        <table id="ledgerTable">
+            <tr><th>Account</th><th>Code</th><th>Category</th><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Trial Balance Tab -->
+    <div id="trialBalanceTab" class="tabContent">
+      <div class="scrollable">
+        <table id="trialBalanceTable">
+            <tr><th>Account</th><th>Code</th><th>Category</th><th>Debit</th><th>Credit</th></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Custom Accounts Tab -->
+    <div id="customTab" class="tabContent">
+      <div class="custom-account-form">
+        <h3>Add Custom Account</h3>
+        <div class="form-row">
+          <input type="text" id="customAccountName" placeholder="Account Name (e.g. custom inventory)">
+          <input type="number" id="customAccountCode" placeholder="Account Code">
+          <select id="customAccountCategory">
+            <option value="">Select Category</option>
+            <option value="asset">Asset (1000-1999)</option>
+            <option value="liability">Liability (2000-2999)</option>
+            <option value="equity">Equity (3000-3999)</option>
+            <option value="revenue">Revenue (4000-4499)</option>
+            <option value="expense">Expense (5000-6999)</option>
+          </select>
+          <button onclick="addCustomAccount()">Add</button>
+        </div>
+      </div>
+      
+      <div class="custom-accounts-list">
+        <h3>Custom Accounts</h3>
+        <div id="customAccountsList">
+          <p>No custom accounts added yet.</p>
+        </div>
+      </div>
+    </div>
 
   </div>
 </main>
-
 
 <script>
 let sheetData = [];
 let journal = [];
 let ledger = {};
+let trialBalance = [];
 let customAccounts = {};
+let editingEntryIndex = null;
 
 const sampleData = [
   {Date:"2025-08-01", Description:"Office Supplies Purchase", Type:"Payment", Amount:120, Account:"office supplies"},
@@ -350,7 +511,7 @@ const sampleData = [
 ];
 
 const accountCodes = {
-"Asset": { min: 1000, max: 1999, description: "Current & Fixed Assets" },
+  "Asset": { min: 1000, max: 1999, description: "Current & Fixed Assets" },
   "Liability": { min: 2000, max: 2999, description: "Current & Long-term Liabilities" },
   "Equity": { min: 3000, max: 3999, description: "Owner's Equity & Capital" },
   "Revenue": { min: 4000, max: 4499, description: "Operating Revenue" },
@@ -363,7 +524,7 @@ const accountCodes = {
 };
 
 const defaultAccountMapping = {
-   // Assets
+  // Assets
   "cash": 1000, "bank": 1010, "petty cash": 1020,
   "accounts receivable": 1100, "allowance doubtful accounts": 1110,
   "inventory": 1200, "raw materials": 1210, "work in progress": 1220,
@@ -416,7 +577,22 @@ function getAccountMapping() {
     return { ...defaultAccountMapping, ...customAccounts };
 }
 
-function detectAccount(description) {
+function detectAccountByCode(code) {
+    const accountMapping = getAccountMapping();
+    for (const [account, accCode] of Object.entries(accountMapping)) {
+        if (accCode === code) return account;
+    }
+    return "miscellaneous expense";
+}
+
+function detectAccount(description, accountCode) {
+    // First try to detect by account code if provided
+    if (accountCode) {
+        const accountByCode = detectAccountByCode(accountCode);
+        if (accountByCode !== "miscellaneous expense") return accountByCode;
+    }
+    
+    // Fallback to description-based detection
     const accountMapping = getAccountMapping();
     const lower = description ? description.toLowerCase() : "";
     for (const acc in accountMapping) {
@@ -444,10 +620,10 @@ function formatDate(excelDate) {
         if (parts[0].length === 4) [year, month, day] = parts;
         else [day, month, year] = parts;
         const parsed = new Date(`${year}-${month}-${day}`);
-       if (!isNaN(parsed.getTime())) return parsed.toISOString().split("T")[0];
+        if (!isNaN(parsed.getTime())) return parsed.toISOString().split("T")[0];
     }
     const fallback = new Date(excelDate);
-    return !isNaN(fallback) ? fallback.toISOString().split("T")[0] : "";
+    return !isNaN(fallback.getTime()) ? fallback.toISOString().split("T")[0] : "";
 }
 
 function populateSample() {
@@ -464,7 +640,8 @@ function populateSample() {
 
     const accountMapping = getAccountMapping();
     sampleData.forEach(row => {
-        const code = accountMapping[row.Account] || 0;
+        const account = detectAccount(row.Description, row.Code);
+        const code = accountMapping[account] || 0;
         const category = getAccountTypeByCode(code);
 
         const tr = document.createElement('tr');
@@ -472,7 +649,7 @@ function populateSample() {
                         <td>${row.Description}</td>
                         <td>${row.Type}</td>
                         <td>${row.Amount}</td>
-                        <td>${row.Account}</td>
+                        <td>${account}</td>
                         <td>${code}</td>      
                         <td>${category}</td>`;  
         table.appendChild(tr);
@@ -515,7 +692,7 @@ function displaySheet(data){
     
     const accountMapping = getAccountMapping();
     data.forEach(row => {
-        const account = detectAccount(row.Description);
+        const account = detectAccount(row.Description, row.Code);
         const code = accountMapping[account] || 6600;
         const category = getAccountTypeByCode(code);
 
@@ -535,11 +712,12 @@ function generateJournal(){
     if(sheetData.length===0){ alert("Load data first!"); return; }
     journal = [];
     ledger = {};
+    trialBalance = [];
     const counterAccount = document.getElementById('counterAccount').value || "cash";
     const accountMapping = getAccountMapping();
 
     sheetData.forEach(row => {
-        const acc = detectAccount(row.Description);
+        const acc = detectAccount(row.Description, row.Code);
         const code = accountMapping[acc] || 0;
         const category = getAccountTypeByCode(code);
         const amount = parseFloat(row.Amount);
@@ -559,32 +737,143 @@ function generateJournal(){
 
 function displayJournal() {
     const table = document.getElementById('journalTable');
-    table.innerHTML = '<tr><th>Date</th><th>Account</th><th>Code</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th></tr>';
+    table.innerHTML = '<tr><th>Date</th><th>Account</th><th>Code</th><th>Category</th><th>Debit</th><th>Credit</th><th>Description</th><th>Actions</th></tr>';
 
     const fragment = document.createDocumentFragment();
-    journal.forEach(entry => {
+    journal.forEach((entry, index) => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${entry.Date}</td>
-                        <td>${entry.Account}</td>
-                        <td>${entry.Code}</td>
-                        <td>${entry.Category}</td>
-                        <td class="debit">${entry.Debit || ''}</td>
-                        <td class="credit">${entry.Credit || ''}</td>
-                        <td>${entry.Description}</td>`;
+        
+        if (editingEntryIndex === index) {
+            tr.innerHTML = `
+                <td><input type="date" class="edit-input" value="${entry.Date}" id="edit-date-${index}"></td>
+                <td>
+                    <select class="edit-select" id="edit-account-${index}">
+                        ${generateAccountOptions(entry.Account)}
+                    </select>
+                </td>
+                <td><span id="edit-code-${index}">${entry.Code}</span></td>
+                <td><span id="edit-category-${index}">${entry.Category}</span></td>
+                <td><input type="number" step="0.01" class="edit-input" value="${entry.Debit || ''}" id="edit-debit-${index}"></td>
+                <td><input type="number" step="0.01" class="edit-input" value="${entry.Credit || ''}" id="edit-credit-${index}"></td>
+                <td><input type="text" class="edit-input" value="${entry.Description}" id="edit-description-${index}"></td>
+                <td>
+                    <button class="save-btn" onclick="saveEntry(${index})">Save</button>
+                    <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
+                </td>
+            `;
+        } else {
+            tr.innerHTML = `
+                <td>${entry.Date}</td>
+                <td>${entry.Account}</td>
+                <td>${entry.Code}</td>
+                <td>${entry.Category}</td>
+                <td class="debit">${entry.Debit || ''}</td>
+                <td class="credit">${entry.Credit || ''}</td>
+                <td>${entry.Description}</td>
+                <td><button class="edit-btn" onclick="editEntry(${index})">Edit</button></td>
+            `;
+        }
         fragment.appendChild(tr);
     });
     table.appendChild(fragment);
 }
 
+function generateAccountOptions(selectedAccount) {
+    const accountMapping = getAccountMapping();
+    let options = '';
+    for (const [account, code] of Object.entries(accountMapping)) {
+        const selected = account === selectedAccount ? 'selected' : '';
+        options += `<option value="${account}" ${selected}>${account} (${code})</option>`;
+    }
+    return options;
+}
+
+function editEntry(index) {
+    editingEntryIndex = index;
+    displayJournal();
+    
+    // Update code and category when account changes
+    const accountSelect = document.getElementById(`edit-account-${index}`);
+    if (accountSelect) {
+        accountSelect.addEventListener('change', function() {
+            const accountMapping = getAccountMapping();
+            const code = accountMapping[this.value] || 0;
+            const category = getAccountTypeByCode(code);
+            document.getElementById(`edit-code-${index}`).textContent = code;
+            document.getElementById(`edit-category-${index}`).textContent = category;
+        });
+    }
+}
+
+function saveEntry(index) {
+    const accountMapping = getAccountMapping();
+    const account = document.getElementById(`edit-account-${index}`).value;
+    const code = accountMapping[account] || 0;
+    const category = getAccountTypeByCode(code);
+    
+    journal[index] = {
+        Date: document.getElementById(`edit-date-${index}`).value,
+        Account: account,
+        Code: code,
+        Category: category,
+        Debit: parseFloat(document.getElementById(`edit-debit-${index}`).value) || 0,
+        Credit: parseFloat(document.getElementById(`edit-credit-${index}`).value) || 0,
+        Description: document.getElementById(`edit-description-${index}`).value
+    };
+    
+    editingEntryIndex = null;
+    displayJournal();
+    
+    // Regenerate ledger and trial balance
+    generateLedgerFromJournal();
+    generateTrialBalanceFromJournal();
+}
+
+function cancelEdit() {
+    editingEntryIndex = null;
+    displayJournal();
+}
+
 function generateLedger(){
     if(journal.length===0){ alert("Generate journal first!"); return; }
+    generateLedgerFromJournal();
+    generateTrialBalanceFromJournal();
+    displayLedger();
+    alert("General Ledger generated!");
+}
+
+function generateLedgerFromJournal() {
     ledger = {};
     journal.forEach(entry => {
         if(!ledger[entry.Account]) ledger[entry.Account] = [];
         ledger[entry.Account].push({...entry});
     });
-    displayLedger();
-    alert("General Ledger generated!");
+}
+
+function generateTrialBalanceFromJournal() {
+    const balances = {};
+    
+    journal.forEach(entry => {
+        if (!balances[entry.Account]) {
+            balances[entry.Account] = {
+                debit: 0,
+                credit: 0,
+                account: entry.Account,
+                code: entry.Code,
+                category: entry.Category
+            };
+        }
+        balances[entry.Account].debit += entry.Debit || 0;
+        balances[entry.Account].credit += entry.Credit || 0;
+    });
+
+    trialBalance = Object.values(balances).map(balance => ({
+        Account: balance.account,
+        Code: balance.code,
+        Category: balance.category,
+        Debit: balance.debit > balance.credit ? balance.debit - balance.credit : 0,
+        Credit: balance.credit > balance.debit ? balance.credit - balance.debit : 0
+    }));
 }
 
 function displayLedger() {
@@ -611,6 +900,38 @@ function displayLedger() {
     table.appendChild(fragment);
 }
 
+function displayTrialBalance() {
+    const table = document.getElementById('trialBalanceTable');
+    table.innerHTML = '<tr><th>Account</th><th>Code</th><th>Category</th><th>Debit</th><th>Credit</th></tr>';
+
+    const fragment = document.createDocumentFragment();
+    let totalDebits = 0;
+    let totalCredits = 0;
+    
+    trialBalance.forEach(entry => {
+        totalDebits += entry.Debit || 0;
+        totalCredits += entry.Credit || 0;
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${entry.Account}</td>
+                        <td>${entry.Code}</td>
+                        <td>${entry.Category}</td>
+                        <td class="debit">${entry.Debit ? entry.Debit.toFixed(2) : '0.00'}</td>
+                        <td class="credit">${entry.Credit ? entry.Credit.toFixed(2) : '0.00'}</td>`;
+        fragment.appendChild(tr);
+    });
+    
+    // Add total row
+    const totalRow = document.createElement('tr');
+    totalRow.className = 'total-row';
+    totalRow.innerHTML = `<td colspan="3"><strong>TOTAL</strong></td>
+                          <td class="debit"><strong>${totalDebits.toFixed(2)}</strong></td>
+                          <td class="credit"><strong>${totalCredits.toFixed(2)}</strong></td>`;
+    fragment.appendChild(totalRow);
+    
+    table.appendChild(fragment);
+}
+
 function downloadJournal(){
     if(journal.length===0){ 
         alert("Generate journal first!"); 
@@ -631,6 +952,26 @@ function downloadJournal(){
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Journal");
     XLSX.writeFile(wb, "Journal.xlsx");
+}
+
+function downloadTrialBalance(){
+    if(trialBalance.length===0){ 
+        alert("Generate trial balance first!"); 
+        return; 
+    }
+
+    const exportData = trialBalance.map(entry => ({
+        Account: entry.Account,
+        Code: entry.Code,
+        Category: entry.Category,
+        Debit: entry.Debit,
+        Credit: entry.Credit
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Trial Balance");
+    XLSX.writeFile(wb, "TrialBalance.xlsx");
 }
 
 function downloadLedger(){
@@ -757,14 +1098,15 @@ function exportPlatform() {
 function downloadSample() {
     const accountMapping = getAccountMapping();
     const sampleDataWithCodes = sampleData.map(row => {
-        const code = accountMapping[row.Account] || 0;
+        const account = detectAccount(row.Description, row.Code);
+        const code = accountMapping[account] || 0;
         const category = getAccountTypeByCode(code);
         return {
             Date: row.Date,
             Description: row.Description,
             Type: row.Type,
             Amount: row.Amount,
-            Account: row.Account,
+            Account: account,
             Code: code,
             Category: category
         };
@@ -941,12 +1283,13 @@ function openTab(evt, tabName) {
 
     if (tabName === "journalTab" && journal.length > 0) displayJournal();
     if (tabName === "ledgerTab" && Object.keys(ledger).length > 0) displayLedger();
+    if (tabName === "trialBalanceTab" && trialBalance.length > 0) displayTrialBalance();
     if (tabName === "customTab") displayCustomAccounts();
 }
 
 window.onload = function() {
     populateSample();
-    document.getElementById("sampleTab").style.display = "block";
+    document.getElementById("instructionsTab").style.display = "block";
 };
 
 document.getElementById('getStartedBtn').addEventListener('click', () => {
